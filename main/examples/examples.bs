@@ -1,0 +1,126 @@
+include "lib" (as ...)
+#commenti singola linea
+#=
+commenti multilinea
+=#
+var variabile #ogni var è creata nel suo scope e deve essere dichiarata prima di essere ottenuta o usata
+var myvar = 2
+variabile = 4
+variabile = "ciao" #le variabili cambiano automaticamente il tipo di dato se necessario
+
+print (variabile) #va a capo
+printinline (myvar) #nella stessa linea
+
+function main(){
+	...
+}
+
+function miafunzione(input){ #le funzioni possono restituire qualsiasi tipo di dato
+	return input+2 #return non ferma la funzione
+	print("ho restituito input+2")
+}
+
+function miafunzione2(input){
+	addreturn input+2
+	delay (1000)
+	addreturn input+3 #con addreturn se si usa più di 1 addreturn, viene considerato una array
+	#solo a questo punto viene conclusa
+}
+
+function miafunzione(input){
+	lastreturn input+2
+	print("questo testo non verrà considerato") #con lastreturn si ferma la funzione
+}
+
+struct miastr { #le str non sono ereditarie
+	var age::int = 18 #forza tipo con ::type
+	var isman::bool = true #valori default senza construttore
+	var name::string = "J" #i valori delle strutture/classi 
+	var other = "" #preferirei se ci fosse la keyword var di fronte alle proprietà anche se è da decidere
+	function miastr(myage, myisman, myname, altro){
+		#construct personalizzato
+		age = myage
+		isman = myisman
+		name = myname
+		other = altro
+	}
+	function getAge(){
+		if (other != "immortal"){
+			lastreturn age;
+		}
+	} #there are no getters or setters like js
+}
+
+var = miastr() #usa valori default
+var = miastr(19, true, "CJ", "") #usa il construttore quello personalizzato. se non è personalizzato, userà le var in ordine
+
+class miaclass { #usano regole uguali a quelle delle strutture come costruttori anche se hanno l'ereditarietà e la privatezza
+	public {
+		function miaclass(params){
+			#costruttore personalizzato
+		}
+		var qualcosa::int #se non si specifica il valore ovviamente usa il class default value
+		function miafunzione(name){
+			...
+		}
+
+	}
+	private {
+		var privatissima = 6
+	}
+}
+
+class miaclasschild extends miaclass {
+	public {
+		function miaclass(){} #si può sovrascrivere il costruttore o le altre funzioni
+		function miafunzione(){}
+		var boh
+	}
+}
+
+var = miaclass() #usa valori default
+var = miaclasschild() #usa valori default
+var = miastr(19, true, "CJ", "") #usa il construttore quello personalizzato. se non è personalizzato, userà le var in ordine
+
+enum mioenum {
+	caso1
+	caso2
+	caso3
+}
+
+varbella = caso1
+varbella::mioenum = caso1
+varbella = mioeun(1) #->caso2
+
+event mioevento (scalartime::float, scalardeltatime::float){
+	delay(scalartime)
+	while(true){
+		#controllo ripetuto asincrono ad es.
+		delay(scalardeltatime)
+	}
+}
+
+macro areabiggerthan400 (v1, v2){
+	if (v1*v2>400){
+		macroreturn("default") #con macroreturn viene chiamata una possibilità di dove viene chiamata una macro; se la parte non c'è, viene printato un avviso
+	} else if (v1*v2==400) {
+		macroreturn("uqual") #con macroreturn si ferma la macro come su lastreturn delle funzioni
+	} else {
+		macroreturn("smaller")
+	}
+	
+}
+
+#all'interno di function main(){} ad es
+mioevento (0.0, 0.1)
+areabiggerthan400(10, 30){
+	print("bigger")
+} equal {
+	print("=")
+} smaller {
+	print("less")
+	#verrà chiamata questa
+}
+
++ async function -> does not wait for the function to fully execute (void)
++ instant function -> executes the function and returns immediately (no delay allowed)

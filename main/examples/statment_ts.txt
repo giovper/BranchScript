@@ -1,0 +1,13 @@
+statment
+	program
+	vardec
+	fundec
+	expression
+		assignement
+		binaryexpre
+		callexpre
+		memberexpression
+		identifier
+		numericalliteral
+		property
+		objectliteral

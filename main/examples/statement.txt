@@ -1,0 +1,34 @@
+statement
+	param: string names[], string types[] (corrispettivi)
+	program: statement[]
+	dec: int line (linea di codice)
+		vardec: bool const, string identifier, value statement[]
+		spacedec: string identifier, body statenent[]
+			classdec: 
+			enumdec:
+			structdec:
+			eventdec: param[]
+			macrodec: param[] 
+			functiondec: param[]
+	expression: int line
+		assignment: identifier, expression val
+		call: string identifier
+			callvar
+			callspacedec
+				classdec: param[] (dal costruttore che è solo una funzione al loro interno)
+				enumdec: param[]
+				structdec: param[] 
+				eventdec: param[]
+				macrodec: param[], body expression[]
+		binaryexpr string type, left expr, right expr
+		memberexpr ...
+		identifier: string name
+		literal
+			intlit int val
+			floatlit float val
+			stringlit string val
+			boollit bool val
+			objectliteral ... (per ora non gli facciamo)
+		property: string name, value expr
+
+migliora i nomi se ho usato nomi diverse per stesse cose o se sono stato incorretto a usare statement o expr
