@@ -1,45 +1,44 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <vector>
 #include <string>
-#include <memory>  // Aggiungi per std::unique_ptr
-#include "Lexer.h"
+#include <vector>
+#include <memory>
 #include "AST.h"
+#include "Lexer.h"
 
 class Parser {
 public:
-    Parser();
-    ~Parser();
+    Program produceAST(const std::vector<std::string>& file);
 
-    std::unique_ptr<Program> produceAST(const std::vector<std::string>& file);  // Modifica
-    std::unique_ptr<Stmt> parseLineStatement();  // Modifica
-    std::unique_ptr<FunctionDeclaration> parseFunctionDec(std::vector<tokenParentElem> Modifiers);  // Modifica
-    std::unique_ptr<EventDeclaration> parseEventDec(std::vector<tokenParentElem> Modifiers);  // Modifica
-    std::unique_ptr<MacroDeclaration> parseMacroDec(std::vector<tokenParentElem> Modifiers);  // Modifica
-    std::unique_ptr<EnumDeclaration> parseEnumDec(std::vector<tokenParentElem> Modifiers);  // Modifica
-    std::unique_ptr<StructDeclaration> parseStructDec(std::vector<tokenParentElem> Modifiers);  // Modifica
-    std::unique_ptr<VarDeclaration> parseVarDec(std::vector<tokenParentElem> Modifiers);  // Modifica
-    std::vector<std::unique_ptr<Param>> parseParams();  // Modifica
-    std::unique_ptr<Expr> parseExpr();  // Modifica
-    std::unique_ptr<Expr> parseAssignmentExpr();  // Modifica
-    std::unique_ptr<Expr> parseObjectExpr();  // Modifica
-    std::unique_ptr<Expr> parseAdditiveExpr();  // Modifica
-    std::unique_ptr<Expr> parseMultiplicitaveExpr();  // Modifica
-    std::unique_ptr<Expr> parseCallMemberExpr();  // Modifica
-    std::unique_ptr<Expr> parseCallExpr();  // Modifica
-    std::unique_ptr<Expr> parsePrimaryExpr();  // Modifica
-
-private:
-    std::vector<std::vector<tokenParentElem>> Tokens;
-    tokenParentElem eat(bool removeIfEmpty = false);
-    tokenParentElem eat();
-    tokenParentElem expect(tokenParent expected, std::string message);
-    tokenParentElem at();
+    Stmt parseLineStatement();
+    FunctionDeclaration parseFunctionDec(std::vector<tokenParentElem> Modifiers);
+    EventDeclaration parseEventDec(std::vector<tokenParentElem> Modifiers);
+    MacroDeclaration parseMacroDec(std::vector<tokenParentElem> Modifiers);
+    EnumDeclaration parseEnumDec(std::vector<tokenParentElem> Modifiers);
+    StructDeclaration parseStructDec(std::vector<tokenParentElem> Modifiers);
+    VarDeclaration parseVarDec(std::vector<tokenParentElem> Modifiers);
+    Expr parseExpr();
+    std::vector<Param> parseParams();
     void logError(std::string error, int line);
     void logMessage(std::string message, int line);
-    bool isEOL(bool remove = false);
+    Expr parseAssignmentExpr();
+    Expr parseObjectExpr();
+    Expr parseAdditiveExpr();
+    Expr parseMultiplicitaveExpr();
+    Expr parseCallMemberExpr();
+    Expr parseCallExpr();
+    Expr parsePrimaryExpr();
+
+private:
+    tokenParentElem eat();
+    tokenParentElem eat(bool removeIfEmpty);
+    tokenParentElem expect(tokenParent expected, std::string message);
+    tokenParentElem at();
+    bool isEOL(bool remove);
     bool notEOF();
+
+    std::vector<std::vector<tokenParentElem>> Tokens;
 };
 
 #endif // PARSER_H
