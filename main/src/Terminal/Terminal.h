@@ -1,8 +1,8 @@
-// Terminal.h
 #ifndef TERMINAL_H
 #define TERMINAL_H
 
 #include <string>
+#include <memory>  // Aggiungi per std::unique_ptr
 
 class Terminal {
 public:
@@ -10,4 +10,4 @@ public:
     void ListenToCLI();
 };
 
-#endif // BRANCH_SCRIPT_TERMINAL_H
+#endif // TERMINAL_H

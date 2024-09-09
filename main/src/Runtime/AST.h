@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <memory> // Per std::shared_ptr
 
 enum class NodeType {
     Program,
@@ -36,8 +35,6 @@ public:
     virtual void print() const = 0; // Funzione print per stampa
 };
 
-using ParentStmtPtr = std::shared_ptr<ParentStmt>;
-
 class Stmt : public ParentStmt {
 public:
     Stmt() = default;
@@ -58,44 +55,42 @@ public:
     }
 };
 
-using ExprPtr = std::shared_ptr<Expr>;
-
 // Statement nodes
 class Program : public Stmt {
 public:
     Program() = default;
-    Program(const std::vector<ParentStmtPtr>& body) : body(body) {}
+    Program(const std::vector<Stmt>& body) : body(body) {}
     NodeType getType() const override { return NodeType::Program; }
     
     void print() const override {
-        std::cout << "\nProgram w/ size: " << body.size() << "\n";
+        std::cout << "\nProgram w/ size: "<<body.size()<<"\n";
         for (const auto& stmt : body) {
-            stmt->print();
+            stmt.print();
         }
     }
 
-    std::vector<ParentStmtPtr> body;
+    std::vector<Stmt> body;
 };
 
 class Param : public Stmt {
 public:
     Param() = default;
-    Param(const std::string& name, const std::string& type, const ExprPtr& defaultVal)
+    Param(const std::string& name, const std::string& type, const Expr& defaultVal)
         : name(name), type(type), defaultVal(defaultVal) {}
 
     std::string name;
     std::string type;
-    ExprPtr defaultVal;
+    Expr defaultVal;
 
     void print() const override {
-        std::cout << "Param\n" << name << " : " << type;
+        std::cout<<"Param\n"<<name<<" : "<<type;
     }
 };
 
 class VarDeclaration : public Stmt {
 public:
     VarDeclaration() = default;
-    VarDeclaration(bool isConst, bool isPublic, bool isPrivate, const std::string& identifier, const ExprPtr& value)
+    VarDeclaration(bool isConst, bool isPublic, bool isPrivate, const std::string& identifier, const Expr& value)
         : isConst(isConst), isPublic(isPublic), isPrivate(isPrivate), identifier(identifier), value(value) {}
 
     NodeType getType() const override { return NodeType::VarDeclaration; }
@@ -106,20 +101,20 @@ public:
         std::cout << "  isPublic: " << (isPublic ? "true" : "false") << "\n";
         std::cout << "  isPrivate: " << (isPrivate ? "true" : "false") << "\n";
         std::cout << "  identifier: " << identifier << "\n";
-        value->print();
+        value.print();
     }
 
     bool isConst = false;
     bool isPublic = false;
     bool isPrivate = false;
     std::string identifier;
-    ExprPtr value;
+    Expr value;
 };
 
 class FunctionDeclaration : public Stmt {
 public:
     FunctionDeclaration() = default;
-    FunctionDeclaration(bool isConst, bool isPublic, bool isPrivate, const std::string& name, const std::vector<std::shared_ptr<Param>>& parameters, const std::vector<ParentStmtPtr>& body)
+    FunctionDeclaration(bool isConst, bool isPublic, bool isPrivate, const std::string& name, const std::vector<Param>& parameters, const std::vector<Stmt>& body)
         : isConst(isConst), isPublic(isPublic), isPrivate(isPrivate), name(name), parameters(parameters), body(body) {}
 
     NodeType getType() const override { return NodeType::FunctionDeclaration; }
@@ -132,36 +127,36 @@ public:
         std::cout << "  name: " << name << "\n";
         std::cout << "  parameters: ";
         for (const auto& param : parameters) {
-            std::cout << param->name << " : " << param->type << "\n";
+            std::cout << param.name << " : "<<param.type<<"\n";
         }
         std::cout << "\n";
         for (const auto& line : body) {
-            line->print();
+            line.print();
         }
     }
 
     bool isConst = false;
     bool isPublic = false;
     bool isPrivate = false;
-    std::vector<std::shared_ptr<Param>> parameters;
+    std::vector<Param> parameters;
     std::string name;
-    std::vector<ParentStmtPtr> body;
+    std::vector<Stmt> body;
 };
 
 class ClassDeclaration : public Stmt {
 public:
     ClassDeclaration() = default;
-    ClassDeclaration(const std::string& name, const std::vector<ParentStmtPtr>& members)
+    ClassDeclaration(const std::string& name, const std::vector<Stmt>& members)
         : name(name), members(members) {}
 
     NodeType getType() const override { return NodeType::ClassDeclaration; }
     
     void print() const override {
-        std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
+        std::cout << "UNSUPPORTED PRINT CLASSES"<<"\n";
     }
 
     std::string name;
-    std::vector<ParentStmtPtr> members;
+    std::vector<Stmt> members;
 };
 
 class EnumDeclaration : public Stmt {
@@ -173,7 +168,7 @@ public:
     NodeType getType() const override { return NodeType::EnumDeclaration; }
     
     void print() const override {
-        std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
+        std::cout << "UNSUPPORTED PRINT CLASSES"<<"\n";
     }
 
     std::string name;
@@ -183,51 +178,51 @@ public:
 class StructDeclaration : public Stmt {
 public:
     StructDeclaration() = default;
-    StructDeclaration(const std::string& name, const std::vector<ParentStmtPtr>& members)
+    StructDeclaration(const std::string& name, const std::vector<Stmt>& members)
         : name(name), members(members) {}
 
     NodeType getType() const override { return NodeType::StructDeclaration; }
     
     void print() const override {
-        std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
+        std::cout << "UNSUPPORTED PRINT CLASSES"<<"\n";
     }
 
     std::string name;
-    std::vector<ParentStmtPtr> members;
+    std::vector<Stmt> members;
 };
 
 class EventDeclaration : public Stmt {
 public:
     EventDeclaration() = default;
-    EventDeclaration(const std::string& name, const std::vector<std::string>& parameters, const std::vector<ParentStmtPtr>& body)
+    EventDeclaration(const std::string& name, const std::vector<std::string>& parameters, const std::vector<Stmt>& body)
         : name(name), parameters(parameters), body(body) {}
 
     NodeType getType() const override { return NodeType::EventDeclaration; }
     
     void print() const override {
-        std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
+        std::cout << "UNSUPPORTED PRINT CLASSES"<<"\n";
     }
 
     std::string name;
     std::vector<std::string> parameters;
-    std::vector<ParentStmtPtr> body;
+    std::vector<Stmt> body;
 };
 
 class MacroDeclaration : public Stmt {
 public:
     MacroDeclaration() = default;
-    MacroDeclaration(const std::string& name, const std::vector<std::string>& parameters, const std::vector<ParentStmtPtr>& body)
+    MacroDeclaration(const std::string& name, const std::vector<std::string>& parameters, const std::vector<Stmt>& body)
         : name(name), parameters(parameters), body(body) {}
 
     NodeType getType() const override { return NodeType::MacroDeclaration; }
     
     void print() const override {
-        std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
+        std::cout << "UNSUPPORTED PRINT CLASSES"<<"\n";
     }
 
     std::string name;
     std::vector<std::string> parameters;
-    std::vector<ParentStmtPtr> body;
+    std::vector<Stmt> body;
 };
 
 // Expression nodes
@@ -235,7 +230,7 @@ public:
 class AssignmentExpr : public Expr {
 public:
     AssignmentExpr() = default;
-    AssignmentExpr(const ExprPtr& identifier, const ExprPtr& value)
+    AssignmentExpr(const Expr& identifier, const Expr& value)
         : identifier(identifier), value(value) {}
 
     NodeType getType() const override { return NodeType::AssignmentExpr; }
@@ -243,69 +238,69 @@ public:
     void print() const override {
         std::cout << "AssignmentExpr\n";
         std::cout << "  identifier: ";
-        identifier->print();
-        std::cout << "value: ";
-        value->print();
+        identifier.print();
+        std::cout<<"value: ";
+        value.print();
     }
 
-    ExprPtr identifier;
-    ExprPtr value;
+    Expr identifier;
+    Expr value;
 };
 
 class CallExpr : public Expr {
 public:
     CallExpr() = default;
-    CallExpr(const std::string& identifier, const std::vector<ExprPtr>& arguments)
+    CallExpr(const std::string& identifier, const std::vector<Expr>& arguments)
         : identifier(identifier), arguments(arguments) {}
 
     NodeType getType() const override { return NodeType::CallExpr; }
     
     void print() const override {
         std::cout << "CallExpr\n";
-        std::cout << "  identifier: " << identifier << "\n" << "args: ";
-        for (const auto& arg : arguments) {
-            arg->print();
+        std::cout << "  identifier: " << identifier << "\n"<<"args: ";
+        for (const auto& arg : arguments){
+            arg.print();
         }
     }
 
     std::string identifier;
-    std::vector<ExprPtr> arguments;
+    std::vector<Expr> arguments;
 };
 
 class BinaryExpr : public Expr {
 public:
     BinaryExpr() = default;
-    BinaryExpr(const ExprPtr& left, const ExprPtr& right, const std::string& operatorType)
+    BinaryExpr(const Expr& left, const Expr& right, const std::string& operatorType)
         : left(left), right(right), operatorType(operatorType) {}
 
     NodeType getType() const override { return NodeType::BinaryExpr; }
     
     void print() const override {
         std::cout << "BinaryExpr\n";
-        std::cout << "  operatorType: " << operatorType << "\n" << "left";
-        left->print();
-        std::cout << "right";
-        right->print();
+        std::cout << "  operatorType: " << operatorType << "\n"<<"left";
+        left.print();
+        std::cout<<"right";
+        right.print();
     }
 
-    ExprPtr left;
-    ExprPtr right;
+    Expr left;
+    Expr right;
     std::string operatorType;
 };
 
 class MemberExpr : public Expr {
 public:
     MemberExpr() = default;
-    MemberExpr(const ExprPtr& object, const std::string& property)
+    MemberExpr(const Expr& object, const std::string& property)
         : object(object), property(property) {}
 
     NodeType getType() const override { return NodeType::MemberExpr; }
     
     void print() const override {
-        std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
+        std::cout << "UNSUPPORTED PRINT CLASSES"<<"\n";
     }
 
-    ExprPtr object;
+    Expr object;
     std::string property;
 };
 
@@ -387,18 +382,18 @@ public:
 class Property : public Expr {
 public:
     Property() = default;
-    Property(const std::string& key, const ExprPtr& value) : key(key), value(value) {}
+    Property(const std::string& key, const Expr& value) : key(key), value(value) {}
 
     NodeType getType() const override { return NodeType::Property; }
     
     void print() const override {
         std::cout << "Property\n";
         std::cout << "  key: " << key << "\n";
-        value->print();
+        value.print();
     }
 
     std::string key;
-    ExprPtr value;
+    Expr value;
 };
 
 class ObjectLiteral : public Expr {
@@ -410,7 +405,7 @@ public:
     
     void print() const override {
         std::cout << "ObjectLiteral\n";
-        for (const auto& property : properties) {
+        for (const auto& property : properties){
             property.print();
         }
     }
