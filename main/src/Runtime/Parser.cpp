@@ -61,17 +61,17 @@ bool Parser::notEOF(){
 }
 
 Program Parser::produceAST(const std::vector<std::string>& file){
+	std::vector<StmtPtr> body;
 	Lexer lexer;
 	Tokens = lexer.tokenizeMultiLine(file);
-	Program Root;
 	while (notEOF()){
-		Root.body.push_back(parseLineStatement());
+		body.push_back(parseLineStatement());
 		isEOL(true);
 	}
-	return Root;
+	return Program{body};
 }
 
-Stmt Parser::parseLineStatement(){
+StmtPtr Parser::parseLineStatement(){
 	logMessage("parseLineStmt", 0);
 	std::vector<tokenParentElem> Modifiers;
 	while(at().token == modifier){
@@ -79,22 +79,23 @@ Stmt Parser::parseLineStatement(){
 	}
 	switch (at().token){
 	case _function:
-		return parseFunctionDec(Modifiers);
+
+		return std::make_shared<FunctionDeclaration>(parseFunctionDec(Modifiers));
 		break;
 	case _macro:
-		return parseMacroDec(Modifiers);
+		return std::make_shared<MacroDeclaration>(parseMacroDec(Modifiers));
 		break;
 	case _event:
-		return parseEventDec(Modifiers);
+		return std::make_shared<EventDeclaration>(parseEventDec(Modifiers));
 		break;
 	case _enum:
-		return parseEnumDec(Modifiers);
+		return std::make_shared<EnumDeclaration>(parseEnumDec(Modifiers));
 		break;
 	case _struct:
-		return parseStructDec(Modifiers);
+		return std::make_shared<StructDeclaration>(parseStructDec(Modifiers));
 		break;
 	case var:
-		return parseVarDec(Modifiers);
+		return std::make_shared<VarDeclaration>(parseVarDec(Modifiers));
 		break;
 	default:
 		return parseExpr();
@@ -182,7 +183,7 @@ std::vector<Param> Parser::parseParams(){
 	std::vector<Param> output;
 	std::string dataclass;
 	std::string name;
-	Expr defaultVal;
+	ExprPtr defaultVal;
 	expect(openParen, "Expected parenthesis");
 	eat();
 	while(at().token != closeParen && notEOF()){
@@ -221,78 +222,90 @@ std::vector<Param> Parser::parseParams(){
 	return output;
 }
 
-Expr Parser::parseExpr(){
+ExprPtr Parser::parseExpr(){
 	logMessage("parseExpr", 0);
 	return parseAssignmentExpr();
 }
 
-Expr Parser::parseAssignmentExpr(){
+ExprPtr Parser::parseAssignmentExpr(){
 	logMessage("parseAssign", 0);
-	Expr left = parseObjectExpr();
+	ExprPtr left = parseObjectExpr();
 	if(at().token == equals){
 		eat();
-		Expr val = parseExpr();
+		ExprPtr val = parseExpr();
 		AssignmentExpr ae;
 		ae.identifier = left;
 		ae.value = val;
-		return ae;
+		return std::make_shared<AssignmentExpr>(ae);
 	}
 	return left;
 }
 
-Expr Parser::parseObjectExpr(){
+ExprPtr Parser::parseObjectExpr(){
 	logMessage("parseObjExpr", 0);
 	return parseAdditiveExpr();
 }
 
-Expr Parser::parseAdditiveExpr(){
-	logMessage("parseAdd", 0);
-    Expr left = parseMultiplicitaveExpr();
+ExprPtr Parser::parseAdditiveExpr() {
+    logMessage("parseAdd", 0);
+    ExprPtr left = parseMultiplicataveExpr();
+    std::shared_ptr<BinaryExpr> leftbe;
+    int index = 0;
     while (at().subclass == "+" || at().subclass == "-") {
-        std::string addoperator = eat().subclass;
-        Expr right = parseMultiplicitaveExpr();
-
-        left = BinaryExpr(left, right, addoperator); 
+        std::string op = eat().subclass; //operator
+        ExprPtr right = parseMultiplicataveExpr();
+        if (index == 0) {
+            leftbe = std::make_shared<BinaryExpr>(left, right, op);
+        } else {
+            leftbe = std::make_shared<BinaryExpr>(leftbe, right, op);
+        }
+        index++;
     }
-    return left;
+    return (index == 0 ? left : leftbe);
 }
 
-Expr Parser::parseMultiplicitaveExpr(){
-	logMessage("parseMult", 0);
-    Expr left = parseCallMemberExpr();
+ExprPtr Parser::parseMultiplicataveExpr() {
+    logMessage("parseMult", 0);
+    ExprPtr left = parseCallMemberExpr();
+    std::shared_ptr<BinaryExpr> leftbe;
+    int index = 0;
     while (at().subclass == "*" || at().subclass == "/" || at().subclass == "%") {
-        std::string multoperator = eat().subclass;
-        Expr right = parseCallMemberExpr();
-
-        left = BinaryExpr(left, right, multoperator); 
+        std::string op = eat().subclass; //operator
+        ExprPtr right = parseCallMemberExpr();
+        if (index == 0) {
+            leftbe = std::make_shared<BinaryExpr>(left, right, op);
+        } else {
+            leftbe = std::make_shared<BinaryExpr>(leftbe, right, op);
+        }
+        index++;
     }
-    return left;
+    return (index == 0 ? left : leftbe);
 }
 
-Expr Parser::parseCallMemberExpr(){
+ExprPtr Parser::parseCallMemberExpr(){
 	logMessage("parseCallMemb", 0);
 	return parseCallExpr();
 }
 
-Expr Parser::parseCallExpr(){
+ExprPtr Parser::parseCallExpr(){
 	logMessage("parseCalLExpr", 0);
 	return parsePrimaryExpr();
 }
 
-Expr Parser::parsePrimaryExpr(){
+ExprPtr Parser::parsePrimaryExpr(){
 	logMessage("parsePrimExpr", 0);
 	switch (at().token) {
 	case other:
 		eat();
-		return Identifier{at().value};
+		return std::make_shared<Identifier>(Identifier{at().value});
 		break;
 	case dataValue:
 		if (at().subclass == "int"){
 			eat();
-			return IntLiteral{std::stoi(at().value)};
+			return std::make_shared<IntLiteral>(IntLiteral{std::stoi(at().value)});
 		} else if (at().subclass == "float"){
 			eat();
-			return FloatLiteral{std::stof(at().value)};
+			return std::make_shared<FloatLiteral>(FloatLiteral{std::stof(at().value)});
 		} else {
 			eat();
 			logError("No recognized type of val", 0); 
@@ -301,6 +314,6 @@ Expr Parser::parsePrimaryExpr(){
 		logError("No type", 0);
 		std::cout<<at().token<<"->"<<at().subclass<<"->"<<at().value;
 		eat();
-		return Identifier{};
+		throw std::runtime_error("Non recognized token (primary)");
 	}
 }

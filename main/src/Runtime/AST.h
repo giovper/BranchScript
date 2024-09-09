@@ -49,6 +49,8 @@ public:
     }
 };
 
+using StmtPtr = std::shared_ptr<Stmt>;
+
 class Expr : public Stmt {
 public:
     Expr() = default;
@@ -64,7 +66,7 @@ using ExprPtr = std::shared_ptr<Expr>;
 class Program : public Stmt {
 public:
     Program() = default;
-    Program(const std::vector<ParentStmtPtr>& body) : body(body) {}
+    Program(const std::vector<StmtPtr>& body) : body(body) {}
     NodeType getType() const override { return NodeType::Program; }
     
     void print() const override {
@@ -74,7 +76,7 @@ public:
         }
     }
 
-    std::vector<ParentStmtPtr> body;
+    std::vector<StmtPtr> body;
 };
 
 class Param : public Stmt {
@@ -97,6 +99,8 @@ public:
     VarDeclaration() = default;
     VarDeclaration(bool isConst, bool isPublic, bool isPrivate, const std::string& identifier, const ExprPtr& value)
         : isConst(isConst), isPublic(isPublic), isPrivate(isPrivate), identifier(identifier), value(value) {}
+    VarDeclaration(const VarDeclaration& dec)
+        : isConst(dec.isConst), isPublic(dec.isPublic), isPrivate(dec.isPrivate), identifier(dec.identifier), value(dec.value) {}
 
     NodeType getType() const override { return NodeType::VarDeclaration; }
     
@@ -119,8 +123,10 @@ public:
 class FunctionDeclaration : public Stmt {
 public:
     FunctionDeclaration() = default;
-    FunctionDeclaration(bool isConst, bool isPublic, bool isPrivate, const std::string& name, const std::vector<std::shared_ptr<Param>>& parameters, const std::vector<ParentStmtPtr>& body)
+    FunctionDeclaration(bool isConst, bool isPublic, bool isPrivate, const std::string& name, const std::vector<std::shared_ptr<Param>>& parameters, const std::vector<StmtPtr>& body)
         : isConst(isConst), isPublic(isPublic), isPrivate(isPrivate), name(name), parameters(parameters), body(body) {}
+    FunctionDeclaration(const FunctionDeclaration& dec)
+        : isConst(dec.isConst), isPublic(dec.isPublic), isPrivate(dec.isPrivate), name(dec.name), parameters(dec.parameters), body(dec.body) {}
 
     NodeType getType() const override { return NodeType::FunctionDeclaration; }
     
@@ -145,14 +151,16 @@ public:
     bool isPrivate = false;
     std::vector<std::shared_ptr<Param>> parameters;
     std::string name;
-    std::vector<ParentStmtPtr> body;
+    std::vector<StmtPtr> body;
 };
 
 class ClassDeclaration : public Stmt {
 public:
     ClassDeclaration() = default;
-    ClassDeclaration(const std::string& name, const std::vector<ParentStmtPtr>& members)
+    ClassDeclaration(const std::string& name, const std::vector<StmtPtr>& members)
         : name(name), members(members) {}
+    ClassDeclaration(const ClassDeclaration& dec)
+        : name(dec.name), members(dec.members) {}
 
     NodeType getType() const override { return NodeType::ClassDeclaration; }
     
@@ -161,7 +169,7 @@ public:
     }
 
     std::string name;
-    std::vector<ParentStmtPtr> members;
+    std::vector<StmtPtr> members;
 };
 
 class EnumDeclaration : public Stmt {
@@ -169,6 +177,8 @@ public:
     EnumDeclaration() = default;
     EnumDeclaration(const std::string& name, const std::vector<std::string>& values)
         : name(name), values(values) {}
+    EnumDeclaration(const EnumDeclaration& dec)
+        : name(dec.name), values(dec.values) {}
 
     NodeType getType() const override { return NodeType::EnumDeclaration; }
     
@@ -183,8 +193,10 @@ public:
 class StructDeclaration : public Stmt {
 public:
     StructDeclaration() = default;
-    StructDeclaration(const std::string& name, const std::vector<ParentStmtPtr>& members)
+    StructDeclaration(const std::string& name, const std::vector<StmtPtr>& members)
         : name(name), members(members) {}
+    StructDeclaration(const StructDeclaration& dec)
+        : name(dec.name), members(dec.members) {}
 
     NodeType getType() const override { return NodeType::StructDeclaration; }
     
@@ -193,14 +205,16 @@ public:
     }
 
     std::string name;
-    std::vector<ParentStmtPtr> members;
+    std::vector<StmtPtr> members;
 };
 
 class EventDeclaration : public Stmt {
 public:
     EventDeclaration() = default;
-    EventDeclaration(const std::string& name, const std::vector<std::string>& parameters, const std::vector<ParentStmtPtr>& body)
+    EventDeclaration(const std::string& name, const std::vector<std::string>& parameters, const std::vector<StmtPtr>& body)
         : name(name), parameters(parameters), body(body) {}
+    EventDeclaration(const EventDeclaration& dec)
+        : name(dec.name), parameters(dec.parameters), body(dec.body) {}
 
     NodeType getType() const override { return NodeType::EventDeclaration; }
     
@@ -210,14 +224,16 @@ public:
 
     std::string name;
     std::vector<std::string> parameters;
-    std::vector<ParentStmtPtr> body;
+    std::vector<StmtPtr> body;
 };
 
 class MacroDeclaration : public Stmt {
 public:
     MacroDeclaration() = default;
-    MacroDeclaration(const std::string& name, const std::vector<std::string>& parameters, const std::vector<ParentStmtPtr>& body)
+    MacroDeclaration(const std::string& name, const std::vector<std::string>& parameters, const std::vector<StmtPtr>& body)
         : name(name), parameters(parameters), body(body) {}
+    MacroDeclaration(const MacroDeclaration& dec)
+        : name(dec.name), parameters(dec.parameters), body(dec.body) {}
 
     NodeType getType() const override { return NodeType::MacroDeclaration; }
     
@@ -227,7 +243,7 @@ public:
 
     std::string name;
     std::vector<std::string> parameters;
-    std::vector<ParentStmtPtr> body;
+    std::vector<StmtPtr> body;
 };
 
 // Expression nodes
