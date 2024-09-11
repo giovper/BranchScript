@@ -33,11 +33,10 @@ enum tokenParent {
     extends,
     _event,
     _macro,//25
-    living,
     modifier,
     _EOF, 
     comma,
-    dot, //30
+    dot, //29
 };
 
 struct tokenParentElem {

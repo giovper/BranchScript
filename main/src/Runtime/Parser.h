@@ -12,6 +12,7 @@ public:
     Program produceAST(const std::vector<std::string>& file);
 
     StmtPtr parseLineStatement();
+    void PushBody(std::vector<StmtPtr>& bodyref);
     FunctionDeclaration parseFunctionDec(std::vector<tokenParentElem> Modifiers);
     EventDeclaration parseEventDec(std::vector<tokenParentElem> Modifiers);
     MacroDeclaration parseMacroDec(std::vector<tokenParentElem> Modifiers);

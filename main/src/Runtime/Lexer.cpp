@@ -24,9 +24,11 @@ std::map<std::string, tokenParent> Lexer::KEYWORDS = {
     {"extends", extends},
     {"event", _event},
     {"macro", _macro},
-    {"livng", living},
     {"public", modifier},
     {"private", modifier},
+    {"living", modifier},
+    {"instant", modifier},
+    {"async", modifier},
     {"const", modifier},
     {"int", dataClass},
     {"float", dataClass},
@@ -95,7 +97,28 @@ tokenizeLineOutput Lexer::tokenizeSingleLine(int index, const std::vector<std::s
             lineTokens.push_back(Token(closeParen, std::string(1, curCh), std::string(1, curCh)));
         	currentLine.erase(currentLine.begin());
         } else if (curCh == '='){
-            lineTokens.push_back(Token(equals, "=", "="));
+        	if (currentLine[1] == '='){
+        		lineTokens.push_back(Token(condition, "==", "=="));
+        		currentLine.erase(currentLine.begin());
+        	} else {
+            	lineTokens.push_back(Token(equals, "=", "="));
+        	}
+        	currentLine.erase(currentLine.begin());
+        } else if (curCh == '>' || curCh == '<'){
+        	if (currentLine[1] == '='){
+        		if (curCh == '>'){
+        			lineTokens.push_back(Token(condition, ">=", ">="));
+        		} else if (curCh == '<'){
+        			lineTokens.push_back(Token(condition, "<=", "<="));
+        		}
+        		currentLine.erase(currentLine.begin());
+        	} else {
+        		if (curCh == '>'){
+        			lineTokens.push_back(Token(condition, ">", ">"));
+        		} else if (curCh == '<'){
+        			lineTokens.push_back(Token(condition, "<", "<"));
+        		}
+        	}
         	currentLine.erase(currentLine.begin());
         } else if (curCh == '\\' && currentLine.size() == 1){
         	index++;
@@ -112,7 +135,7 @@ tokenizeLineOutput Lexer::tokenizeSingleLine(int index, const std::vector<std::s
         		}
         		std::string num = "";
         		std::string tempcurline = currentLine;
-        		while (tempcurline.size()>0 && Utilities::isDigit(std::string(1, tempcurline.front()))){
+        		while (tempcurline.size()>0 && (Utilities::isDigit(std::string(1, tempcurline.front())) || tempcurline.front() == '.')){
         			if (tempcurline.front() == '.'){
         				if (canBeDot){
         					canBeDot = false;
@@ -121,6 +144,7 @@ tokenizeLineOutput Lexer::tokenizeSingleLine(int index, const std::vector<std::s
         					break;
         				}
         			}
+        			//std::cout<<"Char: "<<tempcurline.front()<<"\n";
         			num += std::string(1, tempcurline.front());
         			tempcurline.erase(tempcurline.begin());
         		}
@@ -128,6 +152,7 @@ tokenizeLineOutput Lexer::tokenizeSingleLine(int index, const std::vector<std::s
         			lineTokens.push_back(Token(dataValue, (canBeDot ? "int" : "float"), num));
         			currentLine = tempcurline;
         		}
+        		//std::cout<<"New one \n";
         	}
         	if (Utilities::isAlphaNum(std::string(1, curCh)) && !skip){
         		skip = true;

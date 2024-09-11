@@ -123,16 +123,16 @@ public:
 class FunctionDeclaration : public Stmt {
 public:
     FunctionDeclaration() = default;
-    FunctionDeclaration(bool isConst, bool isPublic, bool isPrivate, const std::string& name, const std::vector<std::shared_ptr<Param>>& parameters, const std::vector<StmtPtr>& body)
-        : isConst(isConst), isPublic(isPublic), isPrivate(isPrivate), name(name), parameters(parameters), body(body) {}
+    FunctionDeclaration(bool isInstant, bool isPublic, bool isPrivate, const std::string& name, const std::vector<std::shared_ptr<Param>>& parameters, const std::vector<StmtPtr>& body)
+        : isInstant(isInstant), isPublic(isPublic), isPrivate(isPrivate), name(name), parameters(parameters), body(body) {}
     FunctionDeclaration(const FunctionDeclaration& dec)
-        : isConst(dec.isConst), isPublic(dec.isPublic), isPrivate(dec.isPrivate), name(dec.name), parameters(dec.parameters), body(dec.body) {}
+        : isInstant(dec.isInstant), isPublic(dec.isPublic), isPrivate(dec.isPrivate), name(dec.name), parameters(dec.parameters), body(dec.body) {}
 
     NodeType getType() const override { return NodeType::FunctionDeclaration; }
     
     void print() const override {
         std::cout << "FunctionDeclaration\n";
-        std::cout << "  isConst: " << (isConst ? "true" : "false") << "\n";
+        std::cout << "  isInstant: " << (isInstant ? "true" : "false") << "\n";
         std::cout << "  isPublic: " << (isPublic ? "true" : "false") << "\n";
         std::cout << "  isPrivate: " << (isPrivate ? "true" : "false") << "\n";
         std::cout << "  name: " << name << "\n";
@@ -146,9 +146,9 @@ public:
         }
     }
 
-    bool isConst = false;
     bool isPublic = false;
     bool isPrivate = false;
+    bool isInstant = false;
     std::vector<std::shared_ptr<Param>> parameters;
     std::string name;
     std::vector<StmtPtr> body;

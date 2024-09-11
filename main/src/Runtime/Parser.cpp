@@ -51,7 +51,7 @@ bool Parser::isEOL(bool remove){
 	bool output = (Tokens.front().size() == 0);
 	if (remove && output){
 		Tokens.erase(Tokens.begin());
-		//eat(true);
+		eat(true); //added to remove blank lines
 	}
 	return output;
 }
@@ -72,7 +72,8 @@ Program Parser::produceAST(const std::vector<std::string>& file){
 }
 
 StmtPtr Parser::parseLineStatement(){
-	logMessage("parseLineStmt", 0);
+	logMessage("parseLineStmt => ", 0);
+	std::cout<<at().token;
 	std::vector<tokenParentElem> Modifiers;
 	while(at().token == modifier){
 		Modifiers.push_back(eat());
@@ -102,39 +103,61 @@ StmtPtr Parser::parseLineStatement(){
 	}
 }
 
+void Parser::PushBody(std::vector<StmtPtr>& bodyref){
+	int bracCounter = 0;
+	expect(openBrac, "Expected brace");
+	//std::cout<<"BRACE: "<<at().token<<"\n";
+	eat(true);
+	//std::cout<<"BRACE2: "<<at().token<<"\n";
+	while(notEOF() && (not(at().token == closeBrac && bracCounter <= 0))){
+		if (at().token == openBrac){
+			bracCounter++;
+			eat();
+		} else if (at().token == closeBrac) {
+			bracCounter--;
+			eat();
+		} else if (bracCounter>=0){
+			bodyref.push_back(parseLineStatement());
+		}
+		isEOL(true);
+	}
+}
+
 FunctionDeclaration Parser::parseFunctionDec(std::vector<tokenParentElem> Modifiers){
 	logMessage("parseFuncDec", 0);
 	eat();
-	int bracCounter = 0;
-	FunctionDeclaration functiondeclaration;
+	FunctionDeclaration declaration;
 	for (int i=0; i<Modifiers.size(); i++){
-		if (Modifiers[i].subclass == "const"){
-			functiondeclaration.isConst = true;
-		} else if (Modifiers[i].subclass == "public"){
-			functiondeclaration.isPublic = true;
+		if (Modifiers[i].subclass == "public"){
+			if (declaration.isPublic || declaration.isPrivate){
+				logError("Already public/private", 0);
+			} else {
+				declaration.isPublic = true;
+			}
+			if (declaration.isInstant){logError("Private/Public should be before instant", 0);}
 		} else if (Modifiers[i].subclass == "private"){
-			functiondeclaration.isPrivate = true;
+			if (declaration.isPublic || declaration.isPrivate){
+				logError("Already public/private", 0);
+			} else {
+				declaration.isPrivate = true;
+			}
+			if (declaration.isInstant){logError("Private/Public should be before instant", 0);}
+		} else if (Modifiers[i].subclass == "instant"){
+			if (declaration.isInstant){
+				logError("Already instant", 0);
+			} else {
+				declaration.isInstant = true;
+			}
+		} else {
+			logError("Var has unexpected flags", 0);
 		}
 	}
-	if (functiondeclaration.isPrivate && functiondeclaration.isPublic){
-		logError("Var can't be both public and private", 0);
-	}
-	functiondeclaration.name = expect(other, "there is no name").value;
-	std::vector<Param> Params = parseParams();
-	expect(openBrac, "Expected brace in function declaration");
+	declaration.name = expect(other, "there is no name").value;
 	eat();
-	while(notEOF() || (not(at().token == closeBrac && bracCounter <= 0))){
-		if (at().token == openBrac){
-			bracCounter++;
-		} else if (at().token == closeBrac) {
-			bracCounter--;
-		}
-		if (bracCounter>=0){
-			functiondeclaration.body.push_back(parseLineStatement());
-			isEOL(true);
-		}
-	}
-	return functiondeclaration;
+	std::vector<Param> Params = parseParams();
+	PushBody(declaration.body);
+	logMessage("EndParseFuncDec", 0);
+	return declaration;
 }
 
 EventDeclaration Parser::parseEventDec(std::vector<tokenParentElem> Modifiers){
@@ -156,26 +179,39 @@ StructDeclaration Parser::parseStructDec(std::vector<tokenParentElem> Modifiers)
 VarDeclaration Parser::parseVarDec(std::vector<tokenParentElem> Modifiers){
 	logMessage("parseVarDec", 0);
 	eat();
-	VarDeclaration vardeclaration;
+	VarDeclaration declaration;
 	for (int i=0; i<Modifiers.size(); i++){
 		if (Modifiers[i].subclass == "const"){
-			vardeclaration.isConst = true;
+			if (declaration.isConst){
+				logError("Already const", 0);
+			} else {
+				declaration.isConst = true;
+			}
 		} else if (Modifiers[i].subclass == "public"){
-			vardeclaration.isPublic = true;
+			if (declaration.isPublic || declaration.isPrivate){
+				logError("Already public/private", 0);
+			} else {
+				declaration.isPublic = true;
+			}
+			if (declaration.isConst){logError("Private/Public should be before const", 0);}
 		} else if (Modifiers[i].subclass == "private"){
-			vardeclaration.isPrivate = true;
+			if (declaration.isPublic || declaration.isPrivate){
+				logError("Already public/private", 0);
+			} else {
+				declaration.isPrivate = true;
+			}
+			if (declaration.isConst){logError("Private/Public should be before const", 0);}
+		} else {
+			logError("Var has unexpected flags", 0);
 		}
 	}
-	if (vardeclaration.isPrivate && vardeclaration.isPublic){
-		logError("Var can't be both public and private", 0);
-	}
-	vardeclaration.identifier = expect(other, "there is no name").value;
+	declaration.identifier = expect(other, "there is no name").value;
 	eat();
 	expect(equals, "there is no equals");
 	eat();
 	logMessage("Val:", 0);
-	vardeclaration.value = parseExpr();
-	return(vardeclaration); 
+	declaration.value = parseExpr();
+	return(declaration); 
 }
 
 std::vector<Param> Parser::parseParams(){
@@ -219,6 +255,7 @@ std::vector<Param> Parser::parseParams(){
 			}
 		}
 	}
+	eat();
 	return output;
 }
 
@@ -295,21 +332,34 @@ ExprPtr Parser::parseCallExpr(){
 ExprPtr Parser::parsePrimaryExpr(){
 	logMessage("parsePrimExpr", 0);
 	switch (at().token) {
-	case other:
+	case other:{
+		std::string val = at().value;
 		eat();
-		return std::make_shared<Identifier>(Identifier{at().value});
-		break;
-	case dataValue:
+		return std::make_shared<Identifier>(Identifier{val});
+		break;}
+	case dataValue:{
+		std::string val;
 		if (at().subclass == "int"){
+			val = at().value;
 			eat();
-			return std::make_shared<IntLiteral>(IntLiteral{std::stoi(at().value)});
+			//logMessage("Int>" + at().value, 0);
+			return std::make_shared<IntLiteral>(IntLiteral{std::stoi(val)});
 		} else if (at().subclass == "float"){
+			val = at().value;
 			eat();
-			return std::make_shared<FloatLiteral>(FloatLiteral{std::stof(at().value)});
+			return std::make_shared<FloatLiteral>(FloatLiteral{std::stof(val)});
 		} else {
 			eat();
 			logError("No recognized type of val", 0); 
 		}
+		break;}
+	case openParen:{
+		eat();
+		ExprPtr value = parseExpr();
+		expect(closeParen, "Expect close paren");
+		eat();
+		return value;
+		break;}
 	default:
 		logError("No type", 0);
 		std::cout<<at().token<<"->"<<at().subclass<<"->"<<at().value;
