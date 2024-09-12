@@ -33,7 +33,7 @@ public:
 
 private:
     tokenParentElem eat();
-    tokenParentElem eat(bool removeIfEmpty);
+    bool eatline();
     tokenParentElem expect(tokenParent expected, std::string message);
     tokenParentElem at();
     bool isEOL(bool remove);

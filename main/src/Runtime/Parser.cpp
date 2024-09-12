@@ -2,19 +2,17 @@
 #include <iostream>
 #include <stdexcept>
 
-tokenParentElem Parser::eat(bool removeIfEmpty){
+bool Parser::eatline(){
 	tokenParentElem t;
-    if ((Tokens.empty() || Tokens.front().empty()) && !removeIfEmpty) {
+    if (Tokens.empty()) {
         throw std::runtime_error("Attempting to eat from an empty token stream");
     }
-    if (!(Tokens.empty() || Tokens.front().empty())) {
-    	t = Tokens.front().front();
-    	Tokens.front().erase(Tokens.front().begin());
-    }
-    if (Tokens.front().empty() && removeIfEmpty) {
+    if (Tokens.front().empty()) {
         Tokens.erase(Tokens.begin());
+    	return true;
+    } else {
+    	return false;
     }
-    return t;
 }
 
 tokenParentElem Parser::eat(){
@@ -51,7 +49,9 @@ bool Parser::isEOL(bool remove){
 	bool output = (Tokens.front().size() == 0);
 	if (remove && output){
 		Tokens.erase(Tokens.begin());
-		eat(true); //added to remove blank lines
+		if (Tokens.front().size() == 0){
+			isEOL(true);
+		}
 	}
 	return output;
 }
@@ -107,9 +107,10 @@ void Parser::PushBody(std::vector<StmtPtr>& bodyref){
 	int bracCounter = 0;
 	expect(openBrac, "Expected brace");
 	//std::cout<<"BRACE: "<<at().token<<"\n";
-	eat(true);
+	eat();
+	eatline();
 	//std::cout<<"BRACE2: "<<at().token<<"\n";
-	while(notEOF() && (not(at().token == closeBrac && bracCounter <= 0))){
+	while(notEOF() && bracCounter >= 0){
 		if (at().token == openBrac){
 			bracCounter++;
 			eat();
