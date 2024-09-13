@@ -30,6 +30,7 @@ std::map<std::string, tokenParent> Lexer::KEYWORDS = {
     {"instant", modifier},
     {"async", modifier},
     {"const", modifier},
+    {"complex", modifier},
     {"int", dataClass},
     {"float", dataClass},
     {"string", dataClass},

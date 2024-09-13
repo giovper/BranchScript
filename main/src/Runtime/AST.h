@@ -123,16 +123,17 @@ public:
 class FunctionDeclaration : public Stmt {
 public:
     FunctionDeclaration() = default;
-    FunctionDeclaration(bool isInstant, bool isPublic, bool isPrivate, const std::string& name, const std::vector<std::shared_ptr<Param>>& parameters, const std::vector<StmtPtr>& body)
-        : isInstant(isInstant), isPublic(isPublic), isPrivate(isPrivate), name(name), parameters(parameters), body(body) {}
+    FunctionDeclaration(bool isInstant, bool isPublic, bool isPrivate, bool isAsync, const std::string& name, const std::vector<std::shared_ptr<Param>>& parameters, const std::vector<StmtPtr>& body)
+        : isInstant(isInstant), isPublic(isPublic), isPrivate(isPrivate), isAsync(isAsync), name(name), parameters(parameters), body(body) {}
     FunctionDeclaration(const FunctionDeclaration& dec)
-        : isInstant(dec.isInstant), isPublic(dec.isPublic), isPrivate(dec.isPrivate), name(dec.name), parameters(dec.parameters), body(dec.body) {}
+        : isInstant(dec.isInstant), isPublic(dec.isPublic), isPrivate(dec.isPrivate), isAsync(dec.isAsync), name(dec.name), parameters(dec.parameters), body(dec.body) {}
 
     NodeType getType() const override { return NodeType::FunctionDeclaration; }
     
     void print() const override {
         std::cout << "FunctionDeclaration\n";
         std::cout << "  isInstant: " << (isInstant ? "true" : "false") << "\n";
+        std::cout << "  isAsync: " << (isAsync ? "true" : "false") << "\n";
         std::cout << "  isPublic: " << (isPublic ? "true" : "false") << "\n";
         std::cout << "  isPrivate: " << (isPrivate ? "true" : "false") << "\n";
         std::cout << "  name: " << name << "\n";
@@ -149,6 +150,7 @@ public:
     bool isPublic = false;
     bool isPrivate = false;
     bool isInstant = false;
+    bool isAsync = false;
     std::vector<std::shared_ptr<Param>> parameters;
     std::string name;
     std::vector<StmtPtr> body;
@@ -175,10 +177,10 @@ public:
 class EnumDeclaration : public Stmt {
 public:
     EnumDeclaration() = default;
-    EnumDeclaration(const std::string& name, const std::vector<std::string>& values)
-        : name(name), values(values) {}
+    EnumDeclaration(const std::string& name, bool isPublic, bool isPrivate, const std::vector<std::string>& values)
+        : name(name), isPublic(isPublic), isPrivate(isPrivate), values(values) {}
     EnumDeclaration(const EnumDeclaration& dec)
-        : name(dec.name), values(dec.values) {}
+        : name(dec.name), isPublic(dec.isPublic), isPrivate(dec.isPrivate), values(dec.values) {}
 
     NodeType getType() const override { return NodeType::EnumDeclaration; }
     
@@ -186,6 +188,8 @@ public:
         std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
     }
 
+    bool isPublic = false;
+    bool isPrivate = false;
     std::string name;
     std::vector<std::string> values;
 };
@@ -193,10 +197,10 @@ public:
 class StructDeclaration : public Stmt {
 public:
     StructDeclaration() = default;
-    StructDeclaration(const std::string& name, const std::vector<StmtPtr>& members)
-        : name(name), members(members) {}
+    StructDeclaration(const std::string& name, bool isPublic, bool isPrivate, const std::vector<StmtPtr>& members)
+        : name(name), isPublic(isPublic), isPrivate(isPrivate), members(members) {}
     StructDeclaration(const StructDeclaration& dec)
-        : name(dec.name), members(dec.members) {}
+        : name(dec.name), isPublic(dec.isPublic), isPrivate(dec.isPrivate), members(dec.members) {}
 
     NodeType getType() const override { return NodeType::StructDeclaration; }
     
@@ -204,6 +208,8 @@ public:
         std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
     }
 
+    bool isPublic = false;
+    bool isPrivate = false;
     std::string name;
     std::vector<StmtPtr> members;
 };
@@ -211,10 +217,10 @@ public:
 class EventDeclaration : public Stmt {
 public:
     EventDeclaration() = default;
-    EventDeclaration(const std::string& name, const std::vector<std::string>& parameters, const std::vector<StmtPtr>& body)
-        : name(name), parameters(parameters), body(body) {}
+    EventDeclaration(const std::string& name, bool isPublic, bool isPrivate, const std::vector<std::string>& parameters, const std::vector<StmtPtr>& body)
+        : name(name), isPublic(isPublic), isPrivate(isPrivate), parameters(parameters), body(body) {}
     EventDeclaration(const EventDeclaration& dec)
-        : name(dec.name), parameters(dec.parameters), body(dec.body) {}
+        : name(dec.name), isPublic(dec.isPublic), isPrivate(dec.isPrivate), parameters(dec.parameters), body(dec.body) {}
 
     NodeType getType() const override { return NodeType::EventDeclaration; }
     
@@ -222,6 +228,8 @@ public:
         std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
     }
 
+    bool isPublic = false;
+    bool isPrivate = false;
     std::string name;
     std::vector<std::string> parameters;
     std::vector<StmtPtr> body;
@@ -230,10 +238,10 @@ public:
 class MacroDeclaration : public Stmt {
 public:
     MacroDeclaration() = default;
-    MacroDeclaration(const std::string& name, const std::vector<std::string>& parameters, const std::vector<StmtPtr>& body)
-        : name(name), parameters(parameters), body(body) {}
+    MacroDeclaration(const std::string& name, bool isPublic, bool isPrivate, bool isComplex, const std::vector<std::string>& parameters, const std::vector<StmtPtr>& body)
+        : name(name), isPublic(isPublic), isPrivate(isPrivate), isComplex(isComplex), parameters(parameters), body(body) {}
     MacroDeclaration(const MacroDeclaration& dec)
-        : name(dec.name), parameters(dec.parameters), body(dec.body) {}
+        : name(dec.name), isPublic(dec.isPublic), isPrivate(dec.isPrivate), isComplex(dec.isComplex), parameters(dec.parameters), body(dec.body) {}
 
     NodeType getType() const override { return NodeType::MacroDeclaration; }
     
@@ -241,6 +249,9 @@ public:
         std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
     }
 
+    bool isPublic = false;
+    bool isPrivate = false;
+    bool isComplex = false;
     std::string name;
     std::vector<std::string> parameters;
     std::vector<StmtPtr> body;

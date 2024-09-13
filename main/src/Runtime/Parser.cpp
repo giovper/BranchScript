@@ -108,7 +108,7 @@ void Parser::PushBody(std::vector<StmtPtr>& bodyref){
 	expect(openBrac, "Expected brace");
 	//std::cout<<"BRACE: "<<at().token<<"\n";
 	eat();
-	eatline();
+	isEOL(true);
 	//std::cout<<"BRACE2: "<<at().token<<"\n";
 	while(notEOF() && bracCounter >= 0){
 		if (at().token == openBrac){
@@ -135,22 +135,26 @@ FunctionDeclaration Parser::parseFunctionDec(std::vector<tokenParentElem> Modifi
 			} else {
 				declaration.isPublic = true;
 			}
-			if (declaration.isInstant){logError("Private/Public should be before instant", 0);}
+			if (declaration.isInstant || declaration.isAsync){logError("Private/Public should be before instant/async", 0);}
 		} else if (Modifiers[i].subclass == "private"){
 			if (declaration.isPublic || declaration.isPrivate){
 				logError("Already public/private", 0);
 			} else {
 				declaration.isPrivate = true;
 			}
-			if (declaration.isInstant){logError("Private/Public should be before instant", 0);}
-		} else if (Modifiers[i].subclass == "instant"){
-			if (declaration.isInstant){
-				logError("Already instant", 0);
+			if (declaration.isInstant || declaration.isAsync){logError("Private/Public should be before instant/async", 0);}
+		} else if (Modifiers[i].subclass == "instant" || Modifiers[i].subclass == "async"){
+			if (declaration.isInstant || declaration.isAsync){
+				logError("Already instant/async", 0);
 			} else {
-				declaration.isInstant = true;
+				if (declaration.isInstant){
+					declaration.isInstant = true;
+				} else if (declaration.isAsync){
+					declaration.isAsync = true;
+				}
 			}
 		} else {
-			logError("Var has unexpected flags", 0);
+			logError("Func has unexpected flags", 0);
 		}
 	}
 	declaration.name = expect(other, "there is no name").value;
@@ -162,19 +166,134 @@ FunctionDeclaration Parser::parseFunctionDec(std::vector<tokenParentElem> Modifi
 }
 
 EventDeclaration Parser::parseEventDec(std::vector<tokenParentElem> Modifiers){
-
+	logMessage("parseEventDec", 0);
+	eat();
+	EventDeclaration declaration;
+	for (int i=0; i<Modifiers.size(); i++){
+		if (Modifiers[i].subclass == "public"){
+			if (declaration.isPublic || declaration.isPrivate){
+				logError("Already public/private", 0);
+			} else {
+				declaration.isPublic = true;
+			}
+		} else if (Modifiers[i].subclass == "private"){
+			if (declaration.isPublic || declaration.isPrivate){
+				logError("Already public/private", 0);
+			} else {
+				declaration.isPrivate = true;
+			}
+		} else {
+			logError("Var has unexpected flags", 0);
+		}
+	}
+	declaration.name = expect(other, "there is no name").value;
+	eat();
+	std::vector<Param> Params = parseParams();
+	PushBody(declaration.body);
+	logMessage("EndParseEventDec", 0);
+	return declaration;
 }
 
 MacroDeclaration Parser::parseMacroDec(std::vector<tokenParentElem> Modifiers){
-
+	logMessage("parseMacroDec", 0);
+	eat();
+	MacroDeclaration declaration;
+	for (int i=0; i<Modifiers.size(); i++){
+		if (Modifiers[i].subclass == "public"){
+			if (declaration.isPublic || declaration.isPrivate){
+				logError("Already public/private", 0);
+			} else {
+				declaration.isPublic = true;
+			}
+			if (declaration.isComplex){logError("Private/Public should be before complex", 0);}
+		} else if (Modifiers[i].subclass == "private"){
+			if (declaration.isPublic || declaration.isPrivate){
+				logError("Already public/private", 0);
+			} else {
+				declaration.isPrivate = true;
+			}
+			if (declaration.isComplex){logError("Private/Public should be before complex", 0);}
+		} else if (Modifiers[i].subclass == "complex"){
+			if (declaration.isComplex){
+				logError("Already complex", 0);
+			} else {
+				declaration.isComplex = true;
+			}
+		} else {
+			logError("Var has unexpected flags", 0);
+		}
+	}
+	declaration.name = expect(other, "there is no name").value;
+	eat();
+	std::vector<Param> Params = parseParams();
+	PushBody(declaration.body);
+	logMessage("EndParseMacroDec", 0);
+	return declaration;
 }
 
 EnumDeclaration Parser::parseEnumDec(std::vector<tokenParentElem> Modifiers){
-
+	logMessage("parseEnumDec", 0);
+	eat();
+	EnumDeclaration declaration;
+	for (int i=0; i<Modifiers.size(); i++){
+		if (Modifiers[i].subclass == "public"){
+			if (declaration.isPublic || declaration.isPrivate){
+				logError("Already public/private", 0);
+			} else {
+				declaration.isPublic = true;
+			}
+		} else if (Modifiers[i].subclass == "private"){
+			if (declaration.isPublic || declaration.isPrivate){
+				logError("Already public/private", 0);
+			} else {
+				declaration.isPrivate = true;
+			}
+		} else {
+			logError("Var has unexpected flags", 0);
+		}
+	}
+	declaration.name = expect(other, "there is no name").value;
+	eat();
+	expect(openBrac, "Expected brace");
+	eat();
+	isEOL(true);
+	while(notEOF() && at().token != closeBrac){
+		StmtPtr currentptr = parseLineStatement();
+		if (std::shared_ptr<EnumDeclaration> enumPtr = std::dynamic_pointer_cast<EnumDeclaration>(currentptr)){
+			EnumDeclaration& currentvalue = *enumPtr;
+			declaration.values.push_back(currentvalue.name);
+		} else {
+			logError("Enum syntax is wrong", 0);
+		}
+		isEOL(true);
+	}
+	logMessage("EndParseEnumDec", 0);
+	return declaration;
 }
 
 StructDeclaration Parser::parseStructDec(std::vector<tokenParentElem> Modifiers){
-
+	logMessage("parseEventDec", 0);
+	eat();
+	StructDeclaration declaration;
+	for (int i=0; i<Modifiers.size(); i++){
+		if (Modifiers[i].subclass == "public"){
+			if (declaration.isPublic || declaration.isPrivate){
+				logError("Already public/private", 0);
+			} else {
+				declaration.isPublic = true;
+			}
+		} else if (Modifiers[i].subclass == "private"){
+			if (declaration.isPublic || declaration.isPrivate){
+				logError("Already public/private", 0);
+			} else {
+				declaration.isPrivate = true;
+			}
+		} else {
+			logError("Var has unexpected flags", 0);
+		}
+	}
+	
+	return declaration;
 }
 
 VarDeclaration Parser::parseVarDec(std::vector<tokenParentElem> Modifiers){
