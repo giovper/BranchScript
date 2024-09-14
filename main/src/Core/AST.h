@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <memory>
 
 enum class NodeType {
     Program,
@@ -35,6 +36,8 @@ public:
     virtual void print() const = 0; // Funzione print per stampa
 };
 
+using ParentStmtPtr = std::shared_ptr<ParentStmt>;
+
 class Stmt : public ParentStmt {
 public:
     Stmt() = default;
@@ -46,6 +49,8 @@ public:
     }
 };
 
+using StmtPtr = std::shared_ptr<Stmt>;
+
 class Expr : public Stmt {
 public:
     Expr() = default;
@@ -55,28 +60,65 @@ public:
     }
 };
 
+class Declaration : public Stmt {
+public:
+    Declaration() = default;
+    virtual ~Declaration() = default;
+    void print() const override {
+        std::cout << "Declaration\n";
+    }
+};
+
+class NamespaceDeclaration : public Declaration {
+public:
+    NamespaceDeclaration() = default;
+    virtual ~NamespaceDeclaration() = default;
+    void print() const override {
+        std::cout << "NSDeclaration\n";
+    }
+};
+
+using ExprPtr = std::shared_ptr<Expr>;
+
 // Statement nodes
 class Program : public Stmt {
 public:
     Program() = default;
-    Program(const std::vector<Stmt>& body) : body(body) {}
+    Program(const std::vector<StmtPtr>& body) : body(body) {}
     NodeType getType() const override { return NodeType::Program; }
     
     void print() const override {
-        std::cout << "Program\n";
+        std::cout << "\nProgram w/ size: " << body.size() << "\n";
         for (const auto& stmt : body) {
-            stmt.print();
+            stmt->print();
         }
     }
 
-    std::vector<Stmt> body;
+    std::vector<StmtPtr> body;
 };
 
-class VarDeclaration : public Stmt {
+class Param : public Stmt {
+public:
+    Param() = default;
+    Param(const std::string& name, const std::string& type, const ExprPtr& defaultVal)
+        : name(name), type(type), defaultVal(defaultVal) {}
+
+    std::string name;
+    std::string type;
+    ExprPtr defaultVal;
+
+    void print() const override {
+        std::cout << "Param\n" << name << " : " << type;
+    }
+};
+
+class VarDeclaration : public Declaration {
 public:
     VarDeclaration() = default;
-    VarDeclaration(bool isConst, bool isPublic, bool isPrivate, const std::string& identifier, const Expr& value)
+    VarDeclaration(bool isConst, bool isPublic, bool isPrivate, const std::string& identifier, const ExprPtr& value)
         : isConst(isConst), isPublic(isPublic), isPrivate(isPrivate), identifier(identifier), value(value) {}
+    VarDeclaration(const VarDeclaration& dec)
+        : isConst(dec.isConst), isPublic(dec.isPublic), isPrivate(dec.isPrivate), identifier(dec.identifier), value(dec.value) {}
 
     NodeType getType() const override { return NodeType::VarDeclaration; }
     
@@ -86,150 +128,151 @@ public:
         std::cout << "  isPublic: " << (isPublic ? "true" : "false") << "\n";
         std::cout << "  isPrivate: " << (isPrivate ? "true" : "false") << "\n";
         std::cout << "  identifier: " << identifier << "\n";
-        value.print();
+        value->print();
     }
 
     bool isConst = false;
     bool isPublic = false;
     bool isPrivate = false;
     std::string identifier;
-    Expr value;  // Can be an expression or another statement
+    ExprPtr value;
 };
 
-class FunctionDeclaration : public Stmt {
+class FunctionDeclaration : public NamespaceDeclaration {
 public:
     FunctionDeclaration() = default;
-    FunctionDeclaration(bool isConst, bool isPublic, bool isPrivate, const std::string& name, const std::vector<std::string>& parameters, const std::vector<Stmt>& body)
-        : isConst(isConst), isPublic(isPublic), isPrivate(isPrivate), name(name), parameters(parameters), body(body) {}
+    FunctionDeclaration(bool isInstant, bool isPublic, bool isPrivate, bool isAsync, const std::string& name, const std::vector<std::shared_ptr<Param>>& parameters, const std::vector<StmtPtr>& body)
+        : isInstant(isInstant), isPublic(isPublic), isPrivate(isPrivate), isAsync(isAsync), name(name), parameters(parameters), body(body) {}
+    FunctionDeclaration(const FunctionDeclaration& dec)
+        : isInstant(dec.isInstant), isPublic(dec.isPublic), isPrivate(dec.isPrivate), isAsync(dec.isAsync), name(dec.name), parameters(dec.parameters), body(dec.body) {}
 
     NodeType getType() const override { return NodeType::FunctionDeclaration; }
     
     void print() const override {
         std::cout << "FunctionDeclaration\n";
-        std::cout << "  isConst: " << (isConst ? "true" : "false") << "\n";
+        std::cout << "  isInstant: " << (isInstant ? "true" : "false") << "\n";
+        std::cout << "  isAsync: " << (isAsync ? "true" : "false") << "\n";
         std::cout << "  isPublic: " << (isPublic ? "true" : "false") << "\n";
         std::cout << "  isPrivate: " << (isPrivate ? "true" : "false") << "\n";
         std::cout << "  name: " << name << "\n";
         std::cout << "  parameters: ";
         for (const auto& param : parameters) {
-            std::cout << param << " ";
+            std::cout << param->name << " : " << param->type << "\n";
         }
         std::cout << "\n";
-        // Non stampiamo `body` qui
+        for (const auto& line : body) {
+            line->print();
+        }
     }
 
-    bool isConst = false;
     bool isPublic = false;
     bool isPrivate = false;
-    std::vector<std::string> parameters;
+    bool isInstant = false;
+    bool isAsync = false;
+    std::vector<std::shared_ptr<Param>> parameters;
     std::string name;
-    std::vector<Stmt> body;
+    std::vector<StmtPtr> body;
 };
 
-class ClassDeclaration : public Stmt {
+class ClassDeclaration : public NamespaceDeclaration {
 public:
     ClassDeclaration() = default;
-    ClassDeclaration(const std::string& name, const std::vector<Stmt>& members)
+    ClassDeclaration(const std::string& name, const std::vector<StmtPtr>& members)
         : name(name), members(members) {}
+    ClassDeclaration(const ClassDeclaration& dec)
+        : name(dec.name), members(dec.members) {}
 
     NodeType getType() const override { return NodeType::ClassDeclaration; }
     
     void print() const override {
-        std::cout << "ClassDeclaration\n";
-        std::cout << "  name: " << name << "\n";
-        // Non stampiamo `members` qui
+        std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
     }
 
     std::string name;
-    std::vector<Stmt> members;
+    std::vector<StmtPtr> members;
 };
 
-class EnumDeclaration : public Stmt {
+class EnumDeclaration : public NamespaceDeclaration {
 public:
     EnumDeclaration() = default;
-    EnumDeclaration(const std::string& name, const std::vector<std::string>& values)
-        : name(name), values(values) {}
+    EnumDeclaration(const std::string& name, bool isPublic, bool isPrivate, const std::vector<std::string>& values)
+        : name(name), isPublic(isPublic), isPrivate(isPrivate), values(values) {}
+    EnumDeclaration(const EnumDeclaration& dec)
+        : name(dec.name), isPublic(dec.isPublic), isPrivate(dec.isPrivate), values(dec.values) {}
 
     NodeType getType() const override { return NodeType::EnumDeclaration; }
     
     void print() const override {
-        std::cout << "EnumDeclaration\n";
-        std::cout << "  name: " << name << "\n";
-        std::cout << "  values: ";
-        for (const auto& value : values) {
-            std::cout << value << " ";
-        }
-        std::cout << "\n";
+        std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
     }
 
+    bool isPublic = false;
+    bool isPrivate = false;
     std::string name;
     std::vector<std::string> values;
 };
 
-class StructDeclaration : public Stmt {
+class StructDeclaration : public NamespaceDeclaration {
 public:
     StructDeclaration() = default;
-    StructDeclaration(const std::string& name, const std::vector<Stmt>& members)
-        : name(name), members(members) {}
+    StructDeclaration(const std::string& name, bool isPublic, bool isPrivate, const std::vector<StmtPtr>& members)
+        : name(name), isPublic(isPublic), isPrivate(isPrivate), members(members) {}
+    StructDeclaration(const StructDeclaration& dec)
+        : name(dec.name), isPublic(dec.isPublic), isPrivate(dec.isPrivate), members(dec.members) {}
 
     NodeType getType() const override { return NodeType::StructDeclaration; }
     
     void print() const override {
-        std::cout << "StructDeclaration\n";
-        std::cout << "  name: " << name << "\n";
-        // Non stampiamo `members` qui
+        std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
     }
 
+    bool isPublic = false;
+    bool isPrivate = false;
     std::string name;
-    std::vector<Stmt> members;
+    std::vector<StmtPtr> members;
 };
 
-class EventDeclaration : public Stmt {
+class EventDeclaration : public NamespaceDeclaration {
 public:
     EventDeclaration() = default;
-    EventDeclaration(const std::string& name, const std::vector<std::string>& parameters, const std::vector<Stmt>& body)
-        : name(name), parameters(parameters), body(body) {}
+    EventDeclaration(const std::string& name, bool isPublic, bool isPrivate, const std::vector<std::string>& parameters, const std::vector<StmtPtr>& body)
+        : name(name), isPublic(isPublic), isPrivate(isPrivate), parameters(parameters), body(body) {}
+    EventDeclaration(const EventDeclaration& dec)
+        : name(dec.name), isPublic(dec.isPublic), isPrivate(dec.isPrivate), parameters(dec.parameters), body(dec.body) {}
 
     NodeType getType() const override { return NodeType::EventDeclaration; }
     
     void print() const override {
-        std::cout << "EventDeclaration\n";
-        std::cout << "  name: " << name << "\n";
-        std::cout << "  parameters: ";
-        for (const auto& param : parameters) {
-            std::cout << param << " ";
-        }
-        std::cout << "\n";
-        // Non stampiamo `body` qui
+        std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
     }
 
+    bool isPublic = false;
+    bool isPrivate = false;
     std::string name;
     std::vector<std::string> parameters;
-    std::vector<Stmt> body;
+    std::vector<StmtPtr> body;
 };
 
-class MacroDeclaration : public Stmt {
+class MacroDeclaration : public NamespaceDeclaration {
 public:
     MacroDeclaration() = default;
-    MacroDeclaration(const std::string& name, const std::vector<std::string>& parameters, const std::vector<Stmt>& body)
-        : name(name), parameters(parameters), body(body) {}
+    MacroDeclaration(const std::string& name, bool isPublic, bool isPrivate, bool isComplex, const std::vector<std::string>& parameters, const std::vector<StmtPtr>& body)
+        : name(name), isPublic(isPublic), isPrivate(isPrivate), isComplex(isComplex), parameters(parameters), body(body) {}
+    MacroDeclaration(const MacroDeclaration& dec)
+        : name(dec.name), isPublic(dec.isPublic), isPrivate(dec.isPrivate), isComplex(dec.isComplex), parameters(dec.parameters), body(dec.body) {}
 
     NodeType getType() const override { return NodeType::MacroDeclaration; }
     
     void print() const override {
-        std::cout << "MacroDeclaration\n";
-        std::cout << "  name: " << name << "\n";
-        std::cout << "  parameters: ";
-        for (const auto& param : parameters) {
-            std::cout << param << " ";
-        }
-        std::cout << "\n";
-        // Non stampiamo `body` qui
+        std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
     }
 
+    bool isPublic = false;
+    bool isPrivate = false;
+    bool isComplex = false;
     std::string name;
     std::vector<std::string> parameters;
-    std::vector<Stmt> body;
+    std::vector<StmtPtr> body;
 };
 
 // Expression nodes
@@ -237,73 +280,77 @@ public:
 class AssignmentExpr : public Expr {
 public:
     AssignmentExpr() = default;
-    AssignmentExpr(const std::string& identifier, const Expr& value)
+    AssignmentExpr(const ExprPtr& identifier, const ExprPtr& value)
         : identifier(identifier), value(value) {}
 
     NodeType getType() const override { return NodeType::AssignmentExpr; }
     
     void print() const override {
         std::cout << "AssignmentExpr\n";
-        std::cout << "  identifier: " << identifier << "\n";
-        // Non stampiamo `value` qui
+        std::cout << "  identifier: ";
+        identifier->print();
+        std::cout << "value: ";
+        value->print();
     }
 
-    std::string identifier;
-    Expr value;
+    ExprPtr identifier;
+    ExprPtr value;
 };
 
 class CallExpr : public Expr {
 public:
     CallExpr() = default;
-    CallExpr(const std::string& identifier, const std::vector<Expr>& arguments)
+    CallExpr(const std::string& identifier, const std::vector<ExprPtr>& arguments)
         : identifier(identifier), arguments(arguments) {}
 
     NodeType getType() const override { return NodeType::CallExpr; }
     
     void print() const override {
         std::cout << "CallExpr\n";
-        std::cout << "  identifier: " << identifier << "\n";
-        // Non stampiamo `arguments` qui
+        std::cout << "  identifier: " << identifier << "\n" << "args: ";
+        for (const auto& arg : arguments) {
+            arg->print();
+        }
     }
 
     std::string identifier;
-    std::vector<Expr> arguments;
+    std::vector<ExprPtr> arguments;
 };
 
 class BinaryExpr : public Expr {
 public:
     BinaryExpr() = default;
-    BinaryExpr(const Expr& left, const Expr& right, const std::string& operatorType)
+    BinaryExpr(const ExprPtr& left, const ExprPtr& right, const std::string& operatorType)
         : left(left), right(right), operatorType(operatorType) {}
 
     NodeType getType() const override { return NodeType::BinaryExpr; }
     
     void print() const override {
         std::cout << "BinaryExpr\n";
-        std::cout << "  operatorType: " << operatorType << "\n";
-        // Non stampiamo `left` e `right` qui
+        std::cout << "  operatorType: " << operatorType << "\n" << "left";
+        left->print();
+        std::cout << "right";
+        right->print();
     }
 
-    Expr left;
-    Expr right;
+    ExprPtr left;
+    ExprPtr right;
     std::string operatorType;
 };
 
 class MemberExpr : public Expr {
 public:
     MemberExpr() = default;
-    MemberExpr(const Expr& object, const std::string& property)
+    MemberExpr(const ExprPtr& object, const std::string& property)
         : object(object), property(property) {}
 
     NodeType getType() const override { return NodeType::MemberExpr; }
     
     void print() const override {
-        std::cout << "MemberExpr\n";
-        std::cout << "  property: " << property << "\n";
-        // Non stampiamo `object` qui
+        std::cout << "UNSUPPORTED PRINT CLASSES" << "\n";
     }
 
-    Expr object;
+    ExprPtr object;
     std::string property;
 };
 
@@ -385,18 +432,18 @@ public:
 class Property : public Expr {
 public:
     Property() = default;
-    Property(const std::string& key, const Expr& value) : key(key), value(value) {}
+    Property(const std::string& key, const ExprPtr& value) : key(key), value(value) {}
 
     NodeType getType() const override { return NodeType::Property; }
     
     void print() const override {
         std::cout << "Property\n";
         std::cout << "  key: " << key << "\n";
-        // Non stampiamo `value` qui
+        value->print();
     }
 
     std::string key;
-    Expr value;
+    ExprPtr value;
 };
 
 class ObjectLiteral : public Expr {
@@ -408,25 +455,12 @@ public:
     
     void print() const override {
         std::cout << "ObjectLiteral\n";
-        // Non stampiamo `properties` qui
+        for (const auto& property : properties) {
+            property.print();
+        }
     }
 
     std::vector<Property> properties;
-};
-
-class Param : public Stmt {
-public:
-    Param() = default;
-    Param(const std::string& name, const std::string& type, const Expr& defaultVal)
-        : name(name), type(type), defaultVal(defaultVal) {}
-
-    std::string name;
-    std::string type;
-    Expr defaultVal;
-
-    void print() const override {
-        std::cout<<"Param\n"<<name<<" : "<<type;
-    }
 };
 
 #endif // AST_H
