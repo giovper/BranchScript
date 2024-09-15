@@ -17,9 +17,9 @@ RuntimeValPtr evaluate(StmtPtr node, EnvironmentPtr env){
 	} else if (type == NodeType::Identifier) {
 		throw std::runtime_error("This node has no setup in evaluate");
 	} else if (type == NodeType::Program) {
-		evalProgram(node, env);
+		return(evalProgram(node, env));
 	} else if (type == NodeType::BinaryExpr) {
-		evalBinaryExpr(node, env);
+		return(evalBinaryExpr(node, env));
 	} else {
 		throw std::runtime_error("This node has no setup in evaluate");
 	}

@@ -13,8 +13,11 @@ Runtime::Runtime(){
 void Runtime::run(const std::vector<std::string>& file) {
 	Parser parser;
 	EnvironmentPtr globalenv = std::make_shared<Environment>();
-	Program program = parser.produceAST(file);
-	std::cout<<evaluate(std::make_shared<Program>(program), globalenv);
+	Program ast = parser.produceAST(file);
+	RuntimeValPtr program = evaluate(std::make_shared<Program>(ast), globalenv);
+	std::cout<<"\n"<<static_cast<int>(program->getType())<<"\n";
+	std::shared_ptr<IntVal> child = std::dynamic_pointer_cast<IntVal>(program);
+	std::cout<<child->value;
 
 }
 
