@@ -1,4 +1,4 @@
-#include "Environment.h"
+/*#include "Environment.h"
 
 RuntimeVal Environment::declareVar(std::string name, RuntimeVal value, bool const){
 	if (variables.count(name)){
@@ -12,5 +12,4 @@ RuntimeVal Environment::declareVar(std::string name, RuntimeVal value, bool cons
 }
 
 RuntimeVal Environment::assignVar(std::string name, RuntimeVal value){
-	E
-}
+}*/

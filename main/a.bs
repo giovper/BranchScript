@@ -1,8 +1,1 @@
-function main(){
-a = 4
-b = 4
-}
-
-function ab(){
-var a=5.2
-}
+10+2

@@ -54,6 +54,7 @@ using StmtPtr = std::shared_ptr<Stmt>;
 class Expr : public Stmt {
 public:
     Expr() = default;
+    Expr(const Expr& other) = default; // Costruttore di copia
     virtual ~Expr() = default;
     void print() const override {
         std::cout << "Expr\n";
@@ -63,6 +64,7 @@ public:
 class Declaration : public Stmt {
 public:
     Declaration() = default;
+    Declaration(const Declaration& other) = default; // Costruttore di copia
     virtual ~Declaration() = default;
     void print() const override {
         std::cout << "Declaration\n";
@@ -72,6 +74,7 @@ public:
 class NamespaceDeclaration : public Declaration {
 public:
     NamespaceDeclaration() = default;
+    NamespaceDeclaration(const NamespaceDeclaration& other) = default; // Costruttore di copia
     virtual ~NamespaceDeclaration() = default;
     void print() const override {
         std::cout << "NSDeclaration\n";
@@ -85,6 +88,7 @@ class Program : public Stmt {
 public:
     Program() = default;
     Program(const std::vector<StmtPtr>& body) : body(body) {}
+    Program(const Program& other) : body(other.body) {} // Costruttore di copia
     NodeType getType() const override { return NodeType::Program; }
     
     void print() const override {
@@ -102,6 +106,7 @@ public:
     Param() = default;
     Param(const std::string& name, const std::string& type, const ExprPtr& defaultVal)
         : name(name), type(type), defaultVal(defaultVal) {}
+    Param(const Param& other) : name(other.name), type(other.type), defaultVal(other.defaultVal) {} // Costruttore di copia
 
     std::string name;
     std::string type;
@@ -282,6 +287,8 @@ public:
     AssignmentExpr() = default;
     AssignmentExpr(const ExprPtr& identifier, const ExprPtr& value)
         : identifier(identifier), value(value) {}
+    AssignmentExpr(const AssignmentExpr& other)
+        : identifier(other.identifier), value(other.value) {} // Costruttore di copia
 
     NodeType getType() const override { return NodeType::AssignmentExpr; }
     
@@ -302,6 +309,8 @@ public:
     CallExpr() = default;
     CallExpr(const std::string& identifier, const std::vector<ExprPtr>& arguments)
         : identifier(identifier), arguments(arguments) {}
+    CallExpr(const CallExpr& other)
+        : identifier(other.identifier), arguments(other.arguments) {} // Costruttore di copia
 
     NodeType getType() const override { return NodeType::CallExpr; }
     
@@ -322,6 +331,8 @@ public:
     BinaryExpr() = default;
     BinaryExpr(const ExprPtr& left, const ExprPtr& right, const std::string& operatorType)
         : left(left), right(right), operatorType(operatorType) {}
+    BinaryExpr(const BinaryExpr& other)
+        : left(other.left), right(other.right), operatorType(other.operatorType) {} // Costruttore di copia
 
     NodeType getType() const override { return NodeType::BinaryExpr; }
     
@@ -343,6 +354,8 @@ public:
     MemberExpr() = default;
     MemberExpr(const ExprPtr& object, const std::string& property)
         : object(object), property(property) {}
+    MemberExpr(const MemberExpr& other)
+        : object(other.object), property(other.property) {} // Costruttore di copia
 
     NodeType getType() const override { return NodeType::MemberExpr; }
     
@@ -358,6 +371,7 @@ class Identifier : public Expr {
 public:
     Identifier() = default;
     Identifier(const std::string& name) : name(name) {}
+    Identifier(const Identifier& other) : name(other.name) {} // Costruttore di copia
 
     NodeType getType() const override { return NodeType::Identifier; }
     
@@ -373,6 +387,7 @@ class IntLiteral : public Expr {
 public:
     IntLiteral() = default;
     IntLiteral(int value) : value(value) {}
+    IntLiteral(const IntLiteral& other) : value(other.value) {} // Costruttore di copia
 
     NodeType getType() const override { return NodeType::IntLiteral; }
     
@@ -388,6 +403,7 @@ class FloatLiteral : public Expr {
 public:
     FloatLiteral() = default;
     FloatLiteral(float value) : value(value) {}
+    FloatLiteral(const FloatLiteral& other) : value(other.value) {} // Costruttore di copia
 
     NodeType getType() const override { return NodeType::FloatLiteral; }
     
@@ -403,6 +419,7 @@ class StringLiteral : public Expr {
 public:
     StringLiteral() = default;
     StringLiteral(const std::string& value) : value(value) {}
+    StringLiteral(const StringLiteral& other) : value(other.value) {} // Costruttore di copia
 
     NodeType getType() const override { return NodeType::StringLiteral; }
     
@@ -418,6 +435,7 @@ class BoolLiteral : public Expr {
 public:
     BoolLiteral() = default;
     BoolLiteral(bool value) : value(value) {}
+    BoolLiteral(const BoolLiteral& other) : value(other.value) {} // Costruttore di copia
 
     NodeType getType() const override { return NodeType::BoolLiteral; }
     
@@ -433,6 +451,8 @@ class Property : public Expr {
 public:
     Property() = default;
     Property(const std::string& key, const ExprPtr& value) : key(key), value(value) {}
+    Property(const Property& other)
+        : key(other.key), value(other.value) {} // Costruttore di copia
 
     NodeType getType() const override { return NodeType::Property; }
     
@@ -450,6 +470,8 @@ class ObjectLiteral : public Expr {
 public:
     ObjectLiteral() = default;
     ObjectLiteral(const std::vector<Property>& properties) : properties(properties) {}
+    ObjectLiteral(const ObjectLiteral& other)
+        : properties(other.properties) {} // Costruttore di copia
 
     NodeType getType() const override { return NodeType::ObjectLiteral; }
     

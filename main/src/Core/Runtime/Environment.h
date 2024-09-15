@@ -7,6 +7,7 @@
 #include <string>
 #include "Values.h"
 
+class Environment;
 using EnvironmentPtr = std::shared_ptr<Environment>;
 
 class Environment {
@@ -15,7 +16,7 @@ public:
     Environment() : parent(nullptr), global(true) {}
     Environment(EnvironmentPtr parentENV)
         : parent(parentENV), global(parentENV == nullptr) {}
-    RuntimeVal declareVar(std::string name, RuntimeVal value, bool const);
+    RuntimeVal declareVar(std::string name, RuntimeVal value, bool isConst);
     RuntimeVal assignVar(std::string name, RuntimeVal value);
 
 private:
