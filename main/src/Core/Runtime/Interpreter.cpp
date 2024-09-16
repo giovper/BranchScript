@@ -15,7 +15,7 @@ RuntimeValPtr evaluate(StmtPtr node, EnvironmentPtr env){
 		std::shared_ptr<BoolLiteral> child = std::dynamic_pointer_cast<BoolLiteral>(node);
 		return std::make_shared<BoolVal>(child->value);
 	} else if (type == NodeType::Identifier) {
-		throw std::runtime_error("This node has no setup in evaluate");
+		return evalIdentifier(node, env);
 	} else if (type == NodeType::Program) {
 		return(evalProgram(node, env));
 	} else if (type == NodeType::BinaryExpr) {

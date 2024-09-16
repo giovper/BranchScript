@@ -6,6 +6,7 @@
 #include "../Interpreter.h"
 #include "../Values.h"
 #include <cmath>
+#include <windows.h>
 
 RuntimeValPtr evalBinaryExpr (StmtPtr node, EnvironmentPtr env);
 RuntimeValPtr evalNumericBinaryExpr (RuntimeValPtr left, RuntimeValPtr right, std::string op, EnvironmentPtr env);

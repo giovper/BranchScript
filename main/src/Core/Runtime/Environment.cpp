@@ -1,15 +1,35 @@
-/*#include "Environment.h"
+#include "Environment.h"
 
-RuntimeVal Environment::declareVar(std::string name, RuntimeVal value, bool const){
+RuntimeValPtr Environment::declareVar(std::string name, RuntimeValPtr value, bool isConst){
 	if (variables.count(name)){
 		throw std::runtime_error("Already declared var");
 	}
-	variables[name] = value;
+	variables.insert({name, value});
 	
-	if (const){
-		constants.insert(name)
+	if (isConst){
+		constants.insert(name);
 	}
+	return value;
 }
 
-RuntimeVal Environment::assignVar(std::string name, RuntimeVal value){
-}*/
+RuntimeValPtr Environment::assignVar(std::string name, RuntimeValPtr value){
+	EnvironmentPtr env = resolve(name);
+	env->variables[name] = value;
+	return value;
+}
+
+RuntimeValPtr Environment::readVar(std::string name){
+	EnvironmentPtr env = resolve(name);
+	return env->variables[name];
+}
+
+EnvironmentPtr Environment::resolve(std::string name){
+	if (variables.count(name) != 0){
+		std::shared_ptr a = std::make_shared<Environment>(variables, constants);
+		return a;
+	}
+	if (global){
+		throw std::runtime_error("Variable \"" + name + "\" not declared in scope");
+	}
+	return parent->resolve(name);
+}

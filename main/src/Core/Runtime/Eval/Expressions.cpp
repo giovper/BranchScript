@@ -9,6 +9,12 @@ RuntimeValPtr evalProgram (StmtPtr node, EnvironmentPtr env){
 	return returnvalue;
 }
 
+RuntimeValPtr evalIdentifier (StmtPtr node, EnvironmentPtr env){
+	std::shared_ptr<Identifier> identifier = std::dynamic_pointer_cast<Identifier>(node);
+	RuntimeValPtr val = env->readVar(identifier->name);
+	return val;
+}
+
 RuntimeValPtr evalBinaryExpr (StmtPtr node, EnvironmentPtr env){
 	std::shared_ptr<BinaryExpr> child = std::dynamic_pointer_cast<BinaryExpr>(node);
 	RuntimeValPtr left = evaluate(child->left, env);
@@ -63,9 +69,6 @@ RuntimeValPtr evalNumericBinaryExpr (RuntimeValPtr left, RuntimeValPtr right, st
 
 }
 
-RuntimeValPtr evalIdentifier (StmtPtr node, EnvironmentPtr env){
-
-}
 
 RuntimeValPtr evalAssignment (StmtPtr node, EnvironmentPtr env){
 

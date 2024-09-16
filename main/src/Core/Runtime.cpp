@@ -1,9 +1,5 @@
 // Runtime.cpp
 #include "Runtime.h"
-#include "../Utilities/Utilities.h"
-#include "Lexer.h"
-#include "Parser.h"
-#include "Runtime/Interpreter.h"
 
 Runtime::Runtime(){
 	std::string exePath = Utilities::getExePath();
@@ -13,6 +9,7 @@ Runtime::Runtime(){
 void Runtime::run(const std::vector<std::string>& file) {
 	Parser parser;
 	EnvironmentPtr globalenv = std::make_shared<Environment>();
+	globalenv->declareVar("x", std::make_shared<IntVal>(69), false);
 	Program ast = parser.produceAST(file);
 	RuntimeValPtr program = evaluate(std::make_shared<Program>(ast), globalenv);
 	std::cout<<"\n"<<static_cast<int>(program->getType())<<"\n";
@@ -35,5 +32,5 @@ void Runtime::ast(const std::vector<std::string>& file) {
 	}
 	std::cout<<"\nParser\n";
 	Program p = parser.produceAST(file);
-	p.print();
+	if (LOG) {p.print();}
 }

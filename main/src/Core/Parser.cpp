@@ -27,7 +27,7 @@ tokenParentElem Parser::eat(){
 
 tokenParentElem Parser::expect(tokenParent expected, std::string message){
 	if (at().token != expected){
-		std::cout<<std::endl<<"Expected "<<expected<<" instead of "<<at().token;
+		if (LOG) {std::cout<<std::endl<<"Expected "<<expected<<" instead of "<<at().token;}
 	}
 	return at();
 }
@@ -37,11 +37,11 @@ tokenParentElem Parser::at(){
 }
 
 void Parser::logError(std::string error, int line){
-	std::cout<<std::endl<<line<<": "<<error<<std::endl;
+	if (LOG) {std::cout<<std::endl<<line<<": "<<error<<std::endl;}
 }
 
 void Parser::logMessage(std::string message, int line){
-	std::cout<<std::endl<<"<msg>> "<<line<< ": "<<message;
+	if (LOG) {std::cout<<std::endl<<"<msg>> "<<line<< ": "<<message;}
 }
 
 bool Parser::isEOL(bool remove){
@@ -73,14 +73,13 @@ Program Parser::produceAST(const std::vector<std::string>& file){
 
 StmtPtr Parser::parseLineStatement(){
 	logMessage("parseLineStmt => ", 0);
-	std::cout<<at().token;
+	if (LOG) {std::cout<<at().token;}
 	std::vector<tokenParentElem> Modifiers;
 	while(at().token == modifier){
 		Modifiers.push_back(eat());
 	}
 	switch (at().token){
 	case _function:
-
 		return std::make_shared<FunctionDeclaration>(parseFunctionDec(Modifiers));
 		break;
 	case _macro:
@@ -106,10 +105,8 @@ StmtPtr Parser::parseLineStatement(){
 void Parser::PushBody(std::vector<StmtPtr>& bodyref){
 	int bracCounter = 0;
 	expect(openBrac, "Expected brace");
-	//std::cout<<"BRACE: "<<at().token<<"\n";
 	eat();
 	isEOL(true);
-	//std::cout<<"BRACE2: "<<at().token<<"\n";
 	while(notEOF() && bracCounter >= 0){
 		if (at().token == openBrac){
 			bracCounter++;
@@ -271,7 +268,7 @@ EnumDeclaration Parser::parseEnumDec(std::vector<tokenParentElem> Modifiers){
 	return declaration;
 }
 
-StructDeclaration Parser::parseStructDec(std::vector<tokenParentElem> Modifiers){
+StructDeclaration Parser::parseStructDec(std::vector<tokenParentElem> Modifiers){ //todo
 	logMessage("parseEventDec", 0);
 	eat();
 	StructDeclaration declaration;
@@ -482,8 +479,9 @@ ExprPtr Parser::parsePrimaryExpr(){
 		break;}
 	default:
 		logError("No type", 0);
-		std::cout<<at().token<<"->"<<at().subclass<<"->"<<at().value;
+		if (LOG) {std::cout<<at().token<<"->"<<at().subclass<<"->"<<at().value;}
 		eat();
 		throw std::runtime_error("Non recognized token (primary)");
 	}
+	return std::make_shared<Expr>();
 }

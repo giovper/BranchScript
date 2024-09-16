@@ -5,6 +5,10 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include "../Utilities/Utilities.h"
+#include "Lexer.h"
+#include "Parser.h"
+#include "Runtime/Interpreter.h"
 
 class Runtime {
 public:

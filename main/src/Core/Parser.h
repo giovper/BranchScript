@@ -7,6 +7,8 @@
 #include "AST.h"
 #include "Lexer.h"
 
+const bool LOG = false;
+
 class Parser {
 public:
     Program produceAST(const std::vector<std::string>& file);
