@@ -15,6 +15,13 @@ RuntimeValPtr evalIdentifier (StmtPtr node, EnvironmentPtr env){
 	return val;
 }
 
+RuntimeValPtr evalVarDeclaration (StmtPtr node, EnvironmentPtr env){
+	std::shared_ptr<VarDeclaration> var = std::dynamic_pointer_cast<VarDeclaration>(node);
+	RuntimeValPtr val = (var->value != nullptr ? evaluate(var->value, env) : std::make_shared<NullVal>());
+	env->declareVar(var->identifier, val, var->isConst);
+	return val;
+}
+
 RuntimeValPtr evalBinaryExpr (StmtPtr node, EnvironmentPtr env){
 	std::shared_ptr<BinaryExpr> child = std::dynamic_pointer_cast<BinaryExpr>(node);
 	RuntimeValPtr left = evaluate(child->left, env);

@@ -14,6 +14,9 @@ RuntimeValPtr Environment::declareVar(std::string name, RuntimeValPtr value, boo
 
 RuntimeValPtr Environment::assignVar(std::string name, RuntimeValPtr value){
 	EnvironmentPtr env = resolve(name);
+	if (env->constants.count(name) != 0){
+		throw std::runtime_error("Cannot assign const var");
+	}
 	env->variables[name] = value;
 	return value;
 }

@@ -37,5 +37,5 @@ void Runtime::ast(const std::vector<std::string>& file) {
 	}
 	std::cout<<"\nParser\n";
 	Program p = parser.produceAST(file);
-	if (LOG) {p.print();}
+	p.print();
 }
