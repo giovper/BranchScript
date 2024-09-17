@@ -7,7 +7,7 @@
 #include "AST.h"
 #include "Lexer.h"
 
-const bool LOG = false;
+bool LOG = false;
 
 class Parser {
 public:

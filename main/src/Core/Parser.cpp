@@ -324,10 +324,17 @@ VarDeclaration Parser::parseVarDec(std::vector<tokenParentElem> Modifiers){
 	}
 	declaration.identifier = expect(other, "there is no name").value;
 	eat();
-	expect(equals, "there is no equals");
-	eat();
-	logMessage("Val:", 0);
-	declaration.value = parseExpr();
+	if (at().token == equals){
+		expect(equals, "there is no equals");
+		eat();
+		logMessage("Val:", 0);
+		declaration.value = parseExpr();
+	} else {
+		if (declaration.isConst){
+			logError("You should assign a value to a const var", 0);
+		}
+		declaration.value = std::make_shared<Identifier>("null");
+	}
 	return(declaration); 
 }
 
