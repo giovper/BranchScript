@@ -13,6 +13,8 @@
 class Environment;
 using EnvironmentPtr = std::shared_ptr<Environment>;
 
+EnvironmentPtr createGlobalEnv();
+
 class Environment : public std::enable_shared_from_this<Environment>{
 public:
     ~Environment() = default;
@@ -22,7 +24,7 @@ public:
     Environment(EnvironmentPtr parentEnv) //figlio
         : parent(parentEnv), global(parentEnv == nullptr) {}
     
-    Environment(std::map<std::string, RuntimeValPtr> variables, std::set<std::string> constants) //copiona
+    Environment(EnvironmentPtr parent, bool global, std::map<std::string, RuntimeValPtr> variables, std::set<std::string> constants) //copiona
         : parent(nullptr), global(true), variables(variables), constants(constants) {}
 
     Environment(const Environment& env) //copia
@@ -36,8 +38,7 @@ public:
     EnvironmentPtr resolve(std::string name);
     RuntimeValPtr readVar(std::string name);
 
-private:
-    EnvironmentPtr parent;
+    EnvironmentPtr parent; //who put these in private?? why ;(
     std::map<std::string, RuntimeValPtr> variables;
     std::set<std::string> constants;
     bool global;

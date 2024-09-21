@@ -28,6 +28,7 @@ tokenParentElem Parser::eat(){
 tokenParentElem Parser::expect(tokenParent expected, std::string message){
 	if (at().token != expected){
 		if (LOG) {std::cout<<std::endl<<"Expected "<<expected<<" instead of "<<at().token;}
+		throw std::runtime_error("unexpected");
 	}
 	return at();
 }
@@ -404,7 +405,31 @@ ExprPtr Parser::parseAssignmentExpr(){
 
 ExprPtr Parser::parseObjectExpr(){
 	logMessage("parseObjExpr", 0);
-	return parseAdditiveExpr();
+	if (at().token != openBrac){
+		return parseAdditiveExpr();
+	}
+	eat();
+	std::vector<Property> properties = {};
+	while (notEOF() && at().token != closeBrac){
+		std::string key = expect(other, "Object literal should have identifiers").value;
+		eat();
+		if (at().token == comma){
+			eat();
+			properties.push_back(Property{key, std::make_shared<Identifier>("null")});
+		} else if(at().token == closeBrac){
+			properties.push_back(Property{key, std::make_shared<Identifier>("null")});
+		} else {
+			expect(colon, "Expected colon of property");
+			eat();
+			ExprPtr expr = parseExpr();
+			properties.push_back(Property{key, expr});
+			if (at().token != closeBrac){
+				expect(comma, "Expected comma");
+			}
+		}
+	}
+	expect(closeBrac, "Expected closed brac ending parse obj lit");
+	return std::make_shared<ObjectLiteral>(properties);
 }
 
 ExprPtr Parser::parseAdditiveExpr() {

@@ -8,11 +8,7 @@ Runtime::Runtime(){
 
 void Runtime::run(const std::vector<std::string>& file) {
 	Parser parser;
-	EnvironmentPtr globalenv = std::make_shared<Environment>();
-	globalenv->declareVar("x", std::make_shared<IntVal>(69), false);
-	globalenv->declareVar("null", std::make_shared<NullVal>(), true);
-	globalenv->declareVar("true", std::make_shared<BoolVal>(true), true);
-	globalenv->declareVar("false", std::make_shared<BoolVal>(false), true);
+	EnvironmentPtr globalenv = createGlobalEnv();
 
 	Program ast = parser.produceAST(file);
 

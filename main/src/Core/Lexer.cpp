@@ -94,6 +94,9 @@ tokenizeLineOutput Lexer::tokenizeSingleLine(int index, const std::vector<std::s
         } else if (curCh == '.') {
             lineTokens.push_back(Token(dot, ".", "."));
         	currentLine.erase(currentLine.begin());
+        } else if (curCh == ':') {
+            lineTokens.push_back(Token(colon, ":", ":"));
+        	currentLine.erase(currentLine.begin());
         } else if (curCh == '+' || curCh == '-' || curCh == '*' || curCh == '/'){
             lineTokens.push_back(Token(closeParen, std::string(1, curCh), std::string(1, curCh)));
         	currentLine.erase(currentLine.begin());

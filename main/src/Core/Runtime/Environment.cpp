@@ -28,11 +28,20 @@ RuntimeValPtr Environment::readVar(std::string name){
 
 EnvironmentPtr Environment::resolve(std::string name){
 	if (variables.count(name) != 0){
-		std::shared_ptr a = std::make_shared<Environment>(variables, constants);
+		std::shared_ptr a = std::make_shared<Environment>(parent, global, variables, constants);
 		return a;
 	}
 	if (global){
 		throw std::runtime_error("Variable \"" + name + "\" not declared in scope");
 	}
 	return parent->resolve(name);
+}
+
+EnvironmentPtr createGlobalEnv(){
+	EnvironmentPtr env = std::make_shared<Environment>();
+	env->declareVar("null", std::make_shared<NullVal>(), true);
+	env->declareVar("true", std::make_shared<BoolVal>(true), true);
+	env->declareVar("false", std::make_shared<BoolVal>(false), true);
+
+	return env;
 }

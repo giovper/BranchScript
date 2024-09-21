@@ -77,8 +77,18 @@ RuntimeValPtr evalNumericBinaryExpr (RuntimeValPtr left, RuntimeValPtr right, st
 }
 
 
-RuntimeValPtr evalAssignment (StmtPtr node, EnvironmentPtr env){
-
+RuntimeValPtr evalAssignmentExpr (StmtPtr node, EnvironmentPtr env){
+	std::shared_ptr<AssignmentExpr> child = std::dynamic_pointer_cast<AssignmentExpr>(node);
+	if (child->identifier->getType() != NodeType::Identifier){
+		throw std::runtime_error("No identifier as object to assign");
+	}
+	std::shared_ptr<Identifier> ident = std::dynamic_pointer_cast<Identifier>(child->identifier);
+	if (env->constants.count(ident->name)){
+		throw std::runtime_error("Cannot re assign const");
+	}
+	RuntimeValPtr val = evaluate(child->value, env);
+	env->assignVar(ident->name, val);
+	return val;
 }
 
 RuntimeValPtr evalObjectExpression (StmtPtr node, EnvironmentPtr env){

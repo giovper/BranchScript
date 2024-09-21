@@ -36,7 +36,8 @@ enum tokenParent {
     modifier,
     _EOF, 
     comma,
-    dot, //29
+    dot,
+    colon, //30
 };
 
 struct tokenParentElem {
