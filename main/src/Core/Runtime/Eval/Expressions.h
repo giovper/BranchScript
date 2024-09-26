@@ -16,5 +16,6 @@ RuntimeValPtr evalCallExpression (StmtPtr node, EnvironmentPtr env);
 RuntimeValPtr evalProgram (StmtPtr node, EnvironmentPtr env);
 RuntimeValPtr evalVarDeclaration (StmtPtr node, EnvironmentPtr env);
 RuntimeValPtr evalAssignmentExpr (StmtPtr node, EnvironmentPtr env);
+RuntimeValPtr evalObjectExpr (StmtPtr node, EnvironmentPtr env);
 
 #endif

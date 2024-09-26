@@ -90,6 +90,16 @@ public:
     }
 };
 
-//todo: objects, functions, native functions, function value
+class ObjectVal : public RuntimeVal {
+public:
+    std::map<std::string, RuntimeValPtr> properties;
+    ObjectVal() = default;
+    ObjectVal(const ObjectVal& other) : properties(other.properties) {} // Costruttore di copia
+    ValueType getType() const override {
+        return ValueType::Object;
+    }
+};
+
+//todo: functions, native functions, function value
 
 #endif

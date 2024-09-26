@@ -30,7 +30,7 @@ tokenParentElem Parser::expect(tokenParent expected, std::string message){
 		if (LOG) {std::cout<<std::endl<<"Expected "<<expected<<" instead of "<<at().token;}
 		throw std::runtime_error("unexpected");
 	}
-	return at();
+	return eat();
 }
 
 tokenParentElem Parser::at(){
@@ -106,7 +106,6 @@ StmtPtr Parser::parseLineStatement(){
 void Parser::PushBody(std::vector<StmtPtr>& bodyref){
 	int bracCounter = 0;
 	expect(openBrac, "Expected brace");
-	eat();
 	isEOL(true);
 	while(notEOF() && bracCounter >= 0){
 		if (at().token == openBrac){
@@ -156,7 +155,6 @@ FunctionDeclaration Parser::parseFunctionDec(std::vector<tokenParentElem> Modifi
 		}
 	}
 	declaration.name = expect(other, "there is no name").value;
-	eat();
 	std::vector<Param> Params = parseParams();
 	PushBody(declaration.body);
 	logMessage("EndParseFuncDec", 0);
@@ -185,7 +183,6 @@ EventDeclaration Parser::parseEventDec(std::vector<tokenParentElem> Modifiers){
 		}
 	}
 	declaration.name = expect(other, "there is no name").value;
-	eat();
 	std::vector<Param> Params = parseParams();
 	PushBody(declaration.body);
 	logMessage("EndParseEventDec", 0);
@@ -222,7 +219,6 @@ MacroDeclaration Parser::parseMacroDec(std::vector<tokenParentElem> Modifiers){
 		}
 	}
 	declaration.name = expect(other, "there is no name").value;
-	eat();
 	std::vector<Param> Params = parseParams();
 	PushBody(declaration.body);
 	logMessage("EndParseMacroDec", 0);
@@ -251,9 +247,7 @@ EnumDeclaration Parser::parseEnumDec(std::vector<tokenParentElem> Modifiers){
 		}
 	}
 	declaration.name = expect(other, "there is no name").value;
-	eat();
 	expect(openBrac, "Expected brace");
-	eat();
 	isEOL(true);
 	while(notEOF() && at().token != closeBrac){
 		StmtPtr currentptr = parseLineStatement();
@@ -324,10 +318,8 @@ VarDeclaration Parser::parseVarDec(std::vector<tokenParentElem> Modifiers){
 		}
 	}
 	declaration.identifier = expect(other, "there is no name").value;
-	eat();
 	if (at().token == equals){
 		expect(equals, "there is no equals");
-		eat();
 		logMessage("Val:", 0);
 		declaration.value = parseExpr();
 	} else {
@@ -346,7 +338,6 @@ std::vector<Param> Parser::parseParams(){
 	std::string name;
 	ExprPtr defaultVal;
 	expect(openParen, "Expected parenthesis");
-	eat();
 	while(at().token != closeParen && notEOF()){
 		if (at().token == dataClass){
 			eat();
@@ -412,15 +403,15 @@ ExprPtr Parser::parseObjectExpr(){
 	std::vector<Property> properties = {};
 	while (notEOF() && at().token != closeBrac){
 		std::string key = expect(other, "Object literal should have identifiers").value;
-		eat();
+		isEOL(true);
 		if (at().token == comma){
 			eat();
 			properties.push_back(Property{key, std::make_shared<Identifier>("null")});
+			isEOL(true);
 		} else if(at().token == closeBrac){
 			properties.push_back(Property{key, std::make_shared<Identifier>("null")});
 		} else {
 			expect(colon, "Expected colon of property");
-			eat();
 			ExprPtr expr = parseExpr();
 			properties.push_back(Property{key, expr});
 			if (at().token != closeBrac){
@@ -506,7 +497,6 @@ ExprPtr Parser::parsePrimaryExpr(){
 		eat();
 		ExprPtr value = parseExpr();
 		expect(closeParen, "Expect close paren");
-		eat();
 		return value;
 		break;}
 	default:

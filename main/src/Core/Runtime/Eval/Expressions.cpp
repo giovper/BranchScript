@@ -15,6 +15,16 @@ RuntimeValPtr evalIdentifier (StmtPtr node, EnvironmentPtr env){
 	return val;
 }
 
+RuntimeValPtr evalObjectExpr (StmtPtr node, EnvironmentPtr env){
+	std::shared_ptr<ObjectLiteral> child = std::dynamic_pointer_cast<ObjectLiteral>(node);
+	std::shared_ptr<ObjectVal> output = std::make_shared<ObjectVal>();
+	for (auto& property : child->properties){
+		output->properties.insert({property.key, (property.value == nullptr ? env->readVar(property.key) : evaluate(property.value, env))});
+		//std::cout<<property.key<<": "<<std::dynamic_pointer_cast<IntVal>(evaluate(property.value, env))->value;
+	}
+	return output;
+}
+
 RuntimeValPtr evalVarDeclaration (StmtPtr node, EnvironmentPtr env){
 	std::shared_ptr<VarDeclaration> var = std::dynamic_pointer_cast<VarDeclaration>(node);
 	RuntimeValPtr val = (var->value != nullptr ? evaluate(var->value, env) : std::make_shared<NullVal>());
